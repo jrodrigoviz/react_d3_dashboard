@@ -1,14 +1,11 @@
 import React, {Component} from 'react';
-import logo from './logo.svg';
 import './App.css';
-import {csv} from 'd3-fetch';
-import data from './data.csv'
-import BarChart from './BarChart';
-import Button from '@material-ui/core/Button'
-import {AppBar,Grid,Card,CardMedia,CardContent, Drawer,List, ListItem, ListItemIcon,ListItemText, Typography} from '@material-ui/core'
-import FreeBreakfastIcon from '@material-ui/icons/FreeBreakfast';
-
-
+import {BrowserRouter, Route} from 'react-router-dom';
+import Story from './components/pages/Story';
+import Stories from './components/pages/Stories';
+import About from './components/pages/About';
+import Dashboards from './components/pages/Dashboards';
+import ToolbarNav from './components/components/Toolbar';
 
 
 class App extends Component {
@@ -19,18 +16,10 @@ class App extends Component {
 
   };
 
-  async componentDidMount(){
+  componentDidMount(){
     // async keyword waits until the promise is completed
 
-    const self = this;
-
-    //parse out the integer values of the csv
-    const response = await csv(data,(d)=>{return parseInt(d.val)});
-
-    // set the state of the component to give back the resultof the promise
-    this.setState({data:response});
-
-    window.addEventListener('resize', this.onResize, false);
+    window.addEventListener('resize', this.onResize);
     this.onResize()
   };
 
@@ -40,58 +29,27 @@ class App extends Component {
       screenHeight: window.innerHeight})
   };
 
+
   render() {
 
+
     return (
-      <div className = "App">
-        <AppBar position='relative' style={{marginLeft:this.state.appBar, width:this.state.screenWidth}} >
-          <Typography variant="h3" align="left" style={{padding:'10px'}}> React x D3 Dashboard </Typography>
-        </AppBar>
+      <div className="App" >
+      <BrowserRouter>
+      <div className = "App-body" >
+        <header>
+        <h1 className="App-header" > Data Dashboards </h1>
+        <hr/>
+          <ToolbarNav/>
+        </header>
 
-        <Drawer
-          anchor = "left"
-          variant = "permanent">
-          <List>
-            <ListItem>
-              < FreeBreakfastIcon/>
-              < ListItemText> DATA x COFFEE </ListItemText>
-            </ListItem>
-            {['Coffees', 'Dashboards', 'About'].map((text, index) => (
-              <ListItem button key={text}>
-                <ListItemText primary={text} />
-              </ListItem>
-            ))}
-          </List>
+          <Route exact path="/Home" component ={Stories}/>
+          <Route path="/Stories/Story" component ={Story}/>
+          <Route path="/Dashboards" component ={() => <Dashboards width = {this.state.screenWidth}/> }/>
+          <Route path="/About" component ={About}/>
 
-        </Drawer>
-        <div style={{marginLeft:this.state.appBar}}>
-        <Grid container direction="row" position='relative'  spacing ={1} style = {{padding:'25px'}} justify="flex-start" >
-            <Grid item >
-            <Card>
-              <Typography> Chart1 </Typography>
-              <div style = {{display:'inline-block'}} >
-                <BarChart data = {this.state.data} size = {[this.state.screenWidth/4 ,this.state.screenHeight/3]} padding = {50} />
-              </div>
-              </Card>
-            </Grid >
-          <Grid item >
-            <Card>
-            <Typography> Chart2 </Typography>
-            <div style = {{display:'inline-block'}}  >
-              <BarChart data = {this.state.data} size = {[this.state.screenWidth/4 ,this.state.screenHeight/3]} padding = {50} />
-            </div >
-            </Card>
-          </Grid>
-          <Grid item>
-            <Card>
-            <Typography> Chart3 </Typography>
-          <div style = {{display:'inline-block'}}  >
-          <BarChart data = {this.state.data} size = {[this.state.screenWidth/4 ,this.state.screenHeight/3]} padding = {50} />
-          </div >
-            </Card>
-          </Grid>
-        </Grid>
       </div>
+      </BrowserRouter>
       </div>
       )
   }

@@ -1,20 +1,40 @@
 .App {
-  text-align: center;
+  font-family: Raleway;
+
+}
+
+.App hr {
+  margin-top:1px;
+  margin-bottom:1px;
+  color:black;
+  background-color: black;
+  height:1px;
+
+}
+
+.App-body {
+  align-items:center;
+  align-content:center;
+  text-align:center;
+  max-width:1024px;
+  margin:auto;
+  padding:12px;
 }
 
 .App-logo {
   height: 40vmin;
+
 }
 
+
+
 .App-header {
-  background-color: #126A10;
   min-height: 0.5vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  text-align:left;
+  font-size:2em;
+
 }
 
 .App-link {
