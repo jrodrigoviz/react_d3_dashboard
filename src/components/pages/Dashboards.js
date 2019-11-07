@@ -4,6 +4,7 @@ import {sum} from 'd3-array';
 import BarChart from '../data_viz/BarChart';
 import KPICard from '../data_viz/KPICard';
 import RadarChart from '../data_viz/RadarChart';
+import DataTable from '../data_viz/DataTable';
 import {AppBar,Button,Grid,Card,CardMedia,CardContent, Drawer,List, ListItem, ListItemIcon,ListItemText, Typography} from '@material-ui/core'
 
 
@@ -103,7 +104,9 @@ class Dashboards extends Component{
 
       <div align="center" style = {{padding:'25px'}}>
       <Button style={{float:'left'}} onClick = {()=>this.handleDataConnect()} > {this.state.buttonText} </Button>
-      <Grid container direction="row" position='relative'  spacing ={2}  justify="flex-start" alignItems ="flex-start" >
+
+      <Grid container direction="column" spacing ={2} justify="flex-start" >
+      <Grid container item direction="row" position='relative'  spacing ={2}  justify="flex-start" alignItems ="flex-start" >
         <Grid item >
         <Card>
           <Typography> KPI </Typography>
@@ -112,23 +115,35 @@ class Dashboards extends Component{
           </div>
           </Card>
         </Grid >
-      <Grid container direction="row" spacing ={2} justify="flex-start" >
+      <Grid container item direction="row" spacing ={2} justify="flex-start" >
         <Grid item>
           <Card>
             <Typography style={{marginLeft:'25px',marginTop:'10px',textAlign:'left'}}> Chart1 </Typography>
             <div style = {{display:'inline-block'}} >
-              <BarChart data = {this.state.data} size = {[this.state.screenWidth/2 -25,300]} padding = {50}  speed={1000}/>
+              <BarChart data = {this.state.data} size = {[Math.max(this.state.screenWidth-1024,1024)/2 -25,300]} padding = {50}  speed={1000}/>
             </div>
-            </Card>
+        </Card>
         </Grid >
+      </Grid>
+      <Grid container item direction="row" spacing ={2} justify="flex-start" >
         <Grid item>
           <Card>
           <Typography style={{marginLeft:'25px',marginTop:'10px',textAlign:'left'}}> Chart3 </Typography>
         <div style = {{display:'inline-block'}}  >
-          <RadarChart data = {this.state.data2} r={5} size = {[this.state.screenWidth/2 -100,400]} padding = {50} shapeFill = '#adbce6' speed={1000}/>
+          <RadarChart data = {this.state.data2} r={5} size = {[Math.min(this.state.screenWidth-1024,300),300]} padding = {50} shapeFill = '#adbce6' speed={1000}/>
         </div >
           </Card>
         </Grid>
+        <Grid item>
+          <Card>
+          <Typography style={{marginLeft:'25px',marginTop:'10px',textAlign:'left'}}> Table </Typography>
+        <div style = {{display:'inline-block', textAlign:"center"}}   >
+          <DataTable data = {this.state.data}  size = {[Math.max(this.state.screenWidth-1024,1024)/2 ,300]} speed={1000}/>
+        </div >
+          </Card>
+        </Grid>
+
+      </Grid>
       </Grid>
       </Grid>
       </div>

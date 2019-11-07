@@ -20,6 +20,7 @@ class RadarChart extends Component {
     this.shapeFill = this.props.shapeFill;
     this.startingRadian = Math.PI/2;
     this.speed = this.props.speed;
+
 }
 
 componentDidMount(){

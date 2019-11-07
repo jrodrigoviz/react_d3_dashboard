@@ -147,7 +147,6 @@ updateAxis(){
 
 createBarChart(){
 
-  console.log(this.props.data);
   const rect = this.plot
     .selectAll("rect")
     .data(this.props.data,(d)=>d.key);
