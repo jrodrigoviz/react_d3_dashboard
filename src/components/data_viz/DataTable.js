@@ -28,7 +28,7 @@ componentDidMount(){
 };
 
 componentDidUpdate(){
-  this.data = this.props.data.slice(40,50).sort((a,b)=>b.key-a.key);
+  this.data = this.props.data.slice(this.props.data.length-10,this.props.data.length).sort((a,b)=>b.key-a.key);
   this.updateDataTable();
 
 };
@@ -46,7 +46,7 @@ updateDataTable(){
     .append("tr")
     .style("opacity",0)
     .transition()
-    .duration(1000)
+    .duration(this.props.speed)
     .style("opacity",1)
     .each(function(d){
       select(this).append("td").attr("class","col1")

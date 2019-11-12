@@ -43,7 +43,7 @@ createScales(){
     .domain(this.props.data.map((d)=>d.key))
     .range([0, this.props.size[0] - 2* this.props.padding])
     .paddingInner(0.1);
-  var selTicks =  this.props.data.map((d)=>d.key).filter( (d)=>d%10 ==0  );
+  var selTicks =  this.props.data.map((d)=>d.key).filter( (d)=>d%11 ==0  );
   this.xAxis = axisBottom().scale(this.xScale).tickValues(selTicks);
 
   this.colorPalette = [

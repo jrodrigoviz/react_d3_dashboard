@@ -16,6 +16,7 @@ class Dashboards extends Component{
 
     this.state = {data:[]
       ,data2:[]
+      ,dataSummary:[]
       ,screenWidth:this.props.width
       ,buttonText:"Disconnect Data"
 
@@ -24,6 +25,7 @@ class Dashboards extends Component{
     this._isMounted = false;
     this.dataConnect = true;
     this.intervalID = 0;
+    this.speed =1000;
 
     };
 
@@ -31,7 +33,7 @@ class Dashboards extends Component{
 
       this._isMounted = true;
 
-      this.intervalID = setInterval(()=> this.getData(),1000);
+      this.intervalID = setInterval(()=> this.getData(),this.speed);
 
     };
 
@@ -47,10 +49,9 @@ class Dashboards extends Component{
 
      if(this.dataConnect == true){
 
-       const response = await json("/data",(d)=>{ return parseInt(d.data)});
+       const response = await json("/data",(d)=>{console.log(d)});
 
        if(this._isMounted){
-
          //clean data for graphs
          const sums = [
            ...response.data.reduce(
@@ -77,11 +78,14 @@ class Dashboards extends Component{
 
          sums.sort((a,b)=> a.key<b.key ? 1:-1)
 
-
         // set the state of the component to give back the result of the promise
-        this.setState({data:response.data, data2:sums});
+        this.setState({data:response.data, data2:sums, dataSummary:response.dataSummary});
 
        };
+
+
+
+
      };
 
    };
@@ -111,7 +115,7 @@ class Dashboards extends Component{
         <Card>
           <Typography> KPI </Typography>
           <div style = {{display:'inline-block'}} >
-            <KPICard data = {this.state.data} size = {[200,100]} padding = {50}  speed={1000}/>
+            <KPICard data = {this.state.dataSummary} size = {[200,100]} padding = {50}  speed={this.speed}/>
           </div>
           </Card>
         </Grid >
@@ -120,7 +124,7 @@ class Dashboards extends Component{
           <Card>
             <Typography style={{marginLeft:'25px',marginTop:'10px',textAlign:'left'}}> Chart1 </Typography>
             <div style = {{display:'inline-block'}} >
-              <BarChart data = {this.state.data} size = {[Math.max(this.state.screenWidth-1024,1024)/2 -25,300]} padding = {50}  speed={1000}/>
+              <BarChart data = {this.state.data} size = {[Math.max(this.state.screenWidth-1024,1024)/2 -25,300]} padding = {50}  speed={this.speed}/>
             </div>
         </Card>
         </Grid >
@@ -130,15 +134,15 @@ class Dashboards extends Component{
           <Card>
           <Typography style={{marginLeft:'25px',marginTop:'10px',textAlign:'left'}}> Chart3 </Typography>
         <div style = {{display:'inline-block'}}  >
-          <RadarChart data = {this.state.data2} r={5} size = {[Math.min(this.state.screenWidth-1024,300),300]} padding = {50} shapeFill = '#adbce6' speed={1000}/>
+          <RadarChart data = {this.state.data2} r={5} size = {[Math.min(this.state.screenWidth-1024,300),300]} padding = {50} shapeFill = '#adbce6' speed={this.speed}/>
         </div >
           </Card>
         </Grid>
         <Grid item>
           <Card>
-          <Typography style={{marginLeft:'25px',marginTop:'10px',textAlign:'left'}}> Table </Typography>
+          <Typography style={{marginLeft:'25px',marginTop:'10px',textAlign:'left'}}> Last 10 Sales </Typography>
         <div style = {{display:'inline-block', textAlign:"center"}}   >
-          <DataTable data = {this.state.data}  size = {[Math.max(this.state.screenWidth-1024,1024)/2 ,300]} speed={1000}/>
+          <DataTable data = {this.state.data}  size = {[Math.max(this.state.screenWidth-1024,1024)/2 ,300]} speed={this.speed}/>
         </div >
           </Card>
         </Grid>

@@ -91,7 +91,7 @@ createAxis(){
 
   this.plot.select(".x-axis")
     .transition()
-    .duration(1000)
+    .duration(this.speed)
     .call(this.xAxis);
 
   this.plot.append("g")
@@ -101,7 +101,7 @@ createAxis(){
 
   this.plot.select(".y-axis")
     .transition()
-    .duration(1000)
+    .duration(this.speed)
     .call(this.yAxis);
 
 
@@ -159,7 +159,7 @@ createRadarChart(){
 
   vertices
       .selectAll("text")
-      .transition().duration(1000)
+      .transition().duration(this.speed)
       .attr("text-anchor",function(d){
           var theta = (that.dimensionRadianSpacing*that.xScale(d.key) + that.startingRadian) % (2*Math.PI);
 
@@ -353,15 +353,15 @@ updateLines(){
     .curve(this.curveInterpolation);
 
     this.plot.select(".radarPath")
-        .transition().duration(1000)
+        .transition().duration(this.speed)
         .attr("d",lineFunction(this.data));
 
     this.plot.select(".outlineHalfPath")
-        .transition().duration(1000)
+        .transition().duration(this.speed)
         .attr("d",outlineHalfFunction(this.data));
 
     this.plot.select(".outlineFullPath")
-        .transition().duration(1000)
+        .transition().duration(this.speed)
         .attr("d",outlineFullFunction(this.data));
 
 };
