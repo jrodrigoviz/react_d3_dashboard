@@ -24,17 +24,23 @@ componentDidMount(){
   this.createScales();
   this.createAxis();
   this.createBarChart();
+  this.addTitle();
+  this.addSubTitle();
+  this.addXAxisLabel();
+  this.addYAxisLabel();
+
 }
 
 componentDidUpdate(){
   this.createScales();
   this.updateAxis();
-  this.createBarChart();
+  //this.createBarChart();
 }
 
 createScales(){
 
-  this.dataMax = max(this.props.data.map((d)=>d.value));
+  this.dataMax = max(this.props.data.map((d)=>d.value))*1.2;
+
   this.yScale = scaleLinear()
     .domain([0, this.dataMax])
     .range([this.props.size[1] - 2* this.props.padding, 0]);
@@ -43,8 +49,7 @@ createScales(){
     .domain(this.props.data.map((d)=>d.key))
     .range([0, this.props.size[0] - 2* this.props.padding])
     .paddingInner(0.1);
-  var selTicks =  this.props.data.map((d)=>d.key).filter( (d)=>d%11 ==0  );
-  this.xAxis = axisBottom().scale(this.xScale).tickValues(selTicks);
+  this.xAxis = axisBottom().scale(this.xScale);
 
   this.colorPalette = [
     {
@@ -184,6 +189,57 @@ rect
 
 
 }
+
+addTitle(){
+  this.plot.append("text")
+    .text(this.props.title)
+    .attr("class","bar-chart-title")
+    .attr("x",0)
+    .attr("y",-this.props.padding/1.5)
+
+};
+
+
+addSubTitle(){
+  this.plot.append("text")
+    .text(this.props.subtitle)
+    .attr("class","bar-chart-subtitle")
+    .attr("x",0)
+    .attr("y",-this.props.padding/1.5)
+    .attr("dy","1.2em")
+
+};
+
+
+addXAxisLabel(){
+
+  this.plot.append("text")
+    .text(this.props.xAxisLabel)
+    .attr("class","x-axis-label")
+    .attr("x",(this.props.size[0] - 2*this.props.padding)/2)
+    .attr("y",(this.props.size[1] - 2*this.props.padding) - (this.props.padding/2) + this.props.padding)
+    .attr("dy","1em")
+    .style("text-anchor","middle")
+
+}
+
+addYAxisLabel(){
+
+  this.plot.append("text")
+    .text(this.props.yAxisLabel)
+    .attr("class","y-axis-label")
+    .attr("x",-(this.props.size[0] - 2*this.props.padding)/2 + this.props.padding)
+    .attr("y",-this.props.padding/2)
+    .attr("dy","-0.5em")
+    .style("text-anchor","middle")
+    .style("transform","rotate(270deg)")
+
+}
+
+
+
+
+
 
 onHover(){
   select(this)

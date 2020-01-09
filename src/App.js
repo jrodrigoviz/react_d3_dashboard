@@ -5,6 +5,7 @@ import Story from './components/pages/Story';
 import Stories from './components/pages/Stories';
 import About from './components/pages/About';
 import Dashboards from './components/pages/Dashboards';
+import VizExamples from './components/pages/VizExamples';
 import ToolbarNav from './components/components/Toolbar';
 
 
@@ -38,15 +39,15 @@ class App extends Component {
       <BrowserRouter>
       <div className = "App-body" >
         <header>
-        <h1 className="App-header" > Data Dashboards </h1>
+        <h1 className="App-header" style= {{fontWeight:300}}> Matchstick Data </h1>
         <hr/>
           <ToolbarNav/>
         </header>
 
-          <Route exact path="/Home" component ={Stories}/>
-          <Route path="/Stories/Story" component ={Story}/>
-          <Route path="/Dashboards" component ={() => <Dashboards width = {this.state.screenWidth}/> }/>
-          <Route path="/About" component ={About}/>
+          <Route exact path="/" component = {Stories} />
+          <Route path="/Stories/Story/:postID" component = {Story} />
+          <Route path="/VizExamples" component = {VizExamples} />
+          <Route path="/About" component = {About} />
 
       </div>
       </BrowserRouter>

@@ -13,6 +13,7 @@ class DataTable extends Component {
     this.width = this.props.size[0];
     this.padding = this.props.padding;
     this.data = this.props.data;
+    this.title = this.props.title;
 
 }
 
@@ -21,14 +22,14 @@ componentDidMount(){
 
   this.plot  = select(node);
 
-  this.plot.append("th").text("key")
-  this.plot.append("th").text("dim")
-  this.plot.append("th").text("value")
-
+  this.plot.append("th").text("key");
+  this.plot.append("th").text("dim");
+  this.plot.append("th").text("value");
+  this.updateDataTable();
 };
 
 componentDidUpdate(){
-  this.data = this.props.data.slice(this.props.data.length-10,this.props.data.length).sort((a,b)=>b.key-a.key);
+  this.data = this.props.data;
   this.updateDataTable();
 
 };
@@ -62,8 +63,9 @@ updateDataTable(){
 };
 
 render(){
-  return <table ref={node => this.node  = node}
+  return <table class={this.props.className} ref={node => this.node  = node}  style= {{display:"inline"}}
           width = {this.props.size[0]} height = {this.props.size[1]}>
+          <caption>{this.props.title}</caption>
          </table>;
   }
 

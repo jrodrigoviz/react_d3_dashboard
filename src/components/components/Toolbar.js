@@ -4,7 +4,7 @@ import  {Toolbar,Typography} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
 
-const sections = ['Home', 'Dashboards', 'About'];
+const sections = ['Home', 'VizExamples', 'About'];
 
 const useStyles = makeStyles(theme => ({
   toolbarNav: {
@@ -31,7 +31,7 @@ const ToolbarNav = () =>{
 
   return <Toolbar component="nav" variant="dense" className = {classes.toolbarNav}>
     {sections.map((d,i) => (
-        <RouterLink key={d} className = {classes.toolbarNavLink} to={"/"+d} >{d}</RouterLink>
+        <RouterLink key={d} className = {classes.toolbarNavLink} to={"/"+ (d=='Home'?'':d)} >{d}</RouterLink>
       ))
     }
   </Toolbar>

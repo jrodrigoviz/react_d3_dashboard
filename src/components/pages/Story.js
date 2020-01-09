@@ -1,13 +1,17 @@
-import React, {Component} from 'react';
-import {Paper, Typography} from '@material-ui/core';
+import React, {Component,useEffect,useState} from 'react';
+import {json} from 'd3-fetch';
+import {Paper, Typography, Grid} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
+import BarChart from '../data_viz/BarChart';
+import LineChart from '../data_viz/LineChart';
+import DataTable from '../data_viz/DataTable';
 
 const useStyles = makeStyles(theme => ({
 
   story:{
     textAlign:'left',
     textJustify:'left',
-    
+
   },
   storySubHeader:{
     marginTop:'2px',
@@ -21,36 +25,92 @@ const useStyles = makeStyles(theme => ({
 
   },
 
+  dataTable:{
+    color: "red"
+  },
+
+  dataTable:{
+    "& caption":{
+    textAlign:'left'
+    }
+  },
+
+  lineChart:{
+    "& .line-chart-title":{
+    textAlign:'left',
+    fontSize:20
+    },
+    "& .line-chart-subtitle":{
+    textAlign:'',
+    fontSize:15
+    },
+    "& .y-axis-label":{
+    fontSize:12
+    }
+
+  },
+
   storyContent:{
 
   }
   }));
 
-const loremFill = "    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+const Stories = (props) =>{
 
+  const [stories,setStories] = useState({content:'',title:'',storyContent:'', data1:[{}],contentMap:[{type:"text"}]});
 
+    useEffect(()=>{
+      const fetchData = async () =>{
+        const response = await json("/api/story?post_id="+props.match.params.postID);
+        setStories(response[0]);
+      };
+      fetchData();
+    },[]);
 
-const Stories = () =>{
   const classes = useStyles();
 
+  // builds the content of the story based on the mapping of contentMap
+  const contentBuilder = (d) =>{
+    switch(d.type){
+      case "rawText":
+        return <div><p><div dangerouslySetInnerHTML={{
+          __html: d.content
+        }}></div></p></div>
+        break;
+      case "text":
+          return <p>{d.content}</p>
+          break;
+      case "viz":
+          return <Grid container> {d.content.map((d,i)=>{
+              switch(d.vizType){
+                case "barChart":
+                  return <Grid item><BarChart data ={d.data} size = {d.size} padding = {50} speed={1000} title={d.title} subtitle={d.subtitle}/></Grid>
+                case "lineChart":
+                  return <Grid className = {classes.lineChart} item><LineChart data ={d.data} size = {d.size} padding = {50} speed={1000} title={d.title} subtitle={d.subtitle} xAxisLabel= {d.xAxisLabel} yAxisLabel= {d.yAxisLabel}  legendOrientation={d.legendOrientation}/></Grid>
+                case "dataTable":
+                  return <Grid item><DataTable className = {classes.dataTable} title={"Data Table "} data ={d.data} size = {[100,100]} padding = {50}/></Grid>
+                default:
+                  return ""
+              }
+          })}</Grid>
+        break;
+      default:
+        return ""
+  }};
+
+
   return (
-    <Paper elevation = '0' className = {classes.story} >
+    <Paper elevation = {0} className = {classes.story} >
     <header >
-      <h2 className = {classes.storySubHeader}> This is a Title </h2>
-      <h3 className = {classes.storySubHeader}> Stuff that describes the Story | Date </h3>
+      <h2 className = {classes.storySubHeader}> {stories.title} </h2>
+      <h3 className = {classes.storySubHeader}> {stories.content} | {new Date(stories.date).toDateString()} </h3>
       <hr className = {classes.storyHr}/>
     </header>
 
-    <p>
+    {
+      stories.contentMap.map((d,i)=>(contentBuilder(d)))
+    }
 
-    <div >
-      <p>{loremFill}</p>
-    </div>
-    </p>
-
-    <p>
-      {loremFill}
-    </p>
     </Paper>
 
   )
