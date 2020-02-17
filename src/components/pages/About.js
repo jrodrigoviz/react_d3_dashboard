@@ -28,9 +28,9 @@ const useStyles = makeStyles(theme => ({
 
 const subheader = " If a picture with worth a thousand words then an effective data viz is worth a million";
 
-const aboutContent = "This site is create to showcase the power of good data visualizations in telling a stories. It is a another medium of communication that adds more context to the message ";
+const aboutContent = "This site is created to showcase the power of good data visualizations in telling stories. It is a another medium of communication that adds a layer of context and visual understanding that words cannot.";
 
-const aboutContent2 = "The visaulizations generated here use the d3 javascript library, a very flexible and powerful toolset for data visualizations"
+const aboutContent2 = "The visaulizations created here use the d3 javascript library, a flexible and fully customizable data visualization tool. More examples of my d3 visuals can be found on my blocks repository"
 
 
 const About = () =>{
@@ -43,11 +43,13 @@ const About = () =>{
       <hr className = {classes.aboutHr}/>
     </header>
 
-    <p><i>{}</i></p>
+    <p><i>{subheader}</i></p>
 
-    <p>{}</p>
+    <p>{aboutContent}</p>
 
-    <p>{}</p>
+    <p>{aboutContent2} <a href= "https://bl.ocks.org/jrodrigoviz">here</a></p>
+
+
     </Paper>
 
   )

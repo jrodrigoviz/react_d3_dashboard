@@ -44,7 +44,6 @@ componentDidUpdate(){
 reshapeData(){
   // group data by series
   this.seriesData  = Array.from(group(this.props.data, (d)=> d.series),([key, value]) => ({key, value}));
-  console.log(this.seriesData);
 
 }
 

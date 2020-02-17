@@ -46,7 +46,7 @@ createScales(){
     .range([this.props.size[1] - 2* this.props.padding, 0]);
   this.yAxis = axisLeft().scale(this.yScale);
   this.xScale = scaleBand()
-    .domain(this.props.data.map((d)=>d.key))
+    .domain(this.props.data.map((d)=>d.key).sort((a,b)=>a-b))
     .range([0, this.props.size[0] - 2* this.props.padding])
     .paddingInner(0.1);
   this.xAxis = axisBottom().scale(this.xScale);

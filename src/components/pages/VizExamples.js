@@ -25,7 +25,7 @@ const useStyles = makeStyles(theme => ({
 
 }));
 
-var data = [{key:1,series:"Series A",value:2+1},{key:2,series:"Series A",value:2},{key:10,series:"Series A",value:5},{key:1,series:"Series B",value:4},{key:5,series:"Series B",value:6},{key:1,series:"Series C",value:0},{key:5,series:"Series C",value:3},{key:2,series:"Series C",value:16}]
+var data = [{key:1,series:"Series A",value:2+1},{key:2,series:"Series A",value:2},{key:10,series:"Series A",value:5},{key:1,series:"Series B",value:4},{key:5,series:"Series B",value:6},{key:9,series:"Series B",value:1},{key:1,series:"Series C",value:0},{key:5,series:"Series C",value:3},{key:6,series:"Series C",value:16}]
 
 const QuickViz = (props) =>{
 

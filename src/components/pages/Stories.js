@@ -56,7 +56,7 @@ const StoryHome = () => {
       <Grid container direction="row" position='relative'  spacing ={1} style = {{padding:'25px'}} justify="flex-start" >
           {stories.map((d,i)=>(
           <Grid key={d.post_id} item >
-          <Card className = {classes.storyCard} style = {{minWidth:'140px',maxWidth:'200px'}}>
+          <Card className = {classes.storyCard} style = {{minWidth:'300px',maxWidth:'300px'}}>
             <CardMedia component="img" height="140" src={"images/api/images?fileName="+(d.cardPicture===undefined?"generic-image.jpg":d.cardPicture)}/>
             <Typography className = {classes.storyCardTitle} > {d.title}</Typography>
             <CardActions>
