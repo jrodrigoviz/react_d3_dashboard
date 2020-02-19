@@ -5,6 +5,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import LineChart from '../data_viz/LineChart';
 import BarChart from '../data_viz/BarChart';
 import ScatterPlot from '../data_viz/ScatterPlot';
+import ClusteredBarChart from '../data_viz/ClusteredBarChart';
 
 
 const useStyles = makeStyles(theme => ({
@@ -25,7 +26,7 @@ const useStyles = makeStyles(theme => ({
 
 }));
 
-var data = [{key:1,series:"Series A",value:2+1},{key:2,series:"Series A",value:2},{key:10,series:"Series A",value:5},{key:1,series:"Series B",value:4},{key:5,series:"Series B",value:6},{key:9,series:"Series B",value:1},{key:1,series:"Series C",value:0},{key:5,series:"Series C",value:3},{key:6,series:"Series C",value:16}]
+var data = [{key:1,series:"Series A",value:2+1},{key:5,series:"Series A",value:2},{key:10,series:"Series A",value:5},{key:1,series:"Series B",value:4},{key:5,series:"Series B",value:6},{key:10,series:"Series B",value:1},{key:1,series:"Series C",value:1},{key:5,series:"Series C",value:3},{key:10,series:"Series C",value:16}]
 
 const QuickViz = (props) =>{
 
@@ -39,6 +40,9 @@ const QuickViz = (props) =>{
     </Grid>
     <Grid item>
     <BarChart size ={[475,400]} data={data} padding={50} speed={1000} title="Bar Graph" subtitle = "subtitle " xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel"/>
+    </Grid>
+    <Grid item>
+    <ClusteredBarChart size ={[475,400]} data={data} padding={50} speed={1000} title="Clusterd Bar Graph" subtitle = "subtitle " xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel"/>
     </Grid>
     <Grid item>
     <ScatterPlot size ={[475,400]} padding={50} title="Scatter Plot" subtitle = "with KMeans Clustering" xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel" />

@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 // Does not contian d3 prefix when importing classes
 import {scaleLinear, scaleBand,scaleOrdinal} from 'd3-scale';
-import {range,max} from 'd3-array';
+import {range,max,group} from 'd3-array';
 import {keys,values} from 'd3-collection';
 import {select} from 'd3-selection';
 import {axisBottom, axisLeft} from 'd3-axis'
@@ -11,6 +11,7 @@ class BarChart extends Component {
   constructor (props){
     super (props);
     this.createBarChart = this.createBarChart.bind(this);
+
 }
 
 componentDidMount(){
@@ -21,6 +22,7 @@ componentDidMount(){
                 .attr("id","shapes")
                 .attr("transform", "translate(" + this.props.padding + "," + this.props.padding + ")");
 
+  this.reshapeData();
   this.createScales();
   this.createAxis();
   this.createBarChart();
@@ -37,23 +39,51 @@ componentDidUpdate(){
   //this.createBarChart();
 }
 
+
+reshapeData(){
+  // group data by series
+  this.seriesData  = Array.from(group(this.props.data, (d)=> d.series, (d)=>d.key),([key, innerValue]) =>{
+    var value = Array.from(innerValue,([key,value])=>{
+      var value = value[0].value;
+
+      return {key,value}
+    });
+    return {key,value};
+  });
+
+  console.log(this.seriesData);
+
+}
+
+
 createScales(){
 
-  this.dataMax = max(this.props.data.map((d)=>d.value))*1.2;
+  this.dataMax = max(this.seriesData.map((d)=>(d.value.map((d)=>(d.value)))).flat().filter((v,i,a) => a.indexOf(v)===i))*1.2;
+
+  this.seriesMax = max(this.seriesData.map((d)=>d.value.length));
 
   this.yScale = scaleLinear()
     .domain([0, this.dataMax])
     .range([this.props.size[1] - 2* this.props.padding, 0]);
-
   this.yAxis = axisLeft().scale(this.yScale);
 
   this.xScale = scaleBand()
-    .domain(this.props.data.map((d)=>d.key).sort((a,b)=>a-b))
+    .domain(this.seriesData.map((d)=>d.key).sort((a,b)=>a-b))
     .range([0, this.props.size[0] - 2* this.props.padding])
-    .paddingInner(0.1)
+    .paddingInner(0.5)
     .paddingOuter(0.1);
 
   this.xAxis = axisBottom().scale(this.xScale);
+
+  this.uniqueKeysArr = this.seriesData.map((d)=>(d.value.map((d)=>(d.key))))
+    .flat()
+    .filter((v,i,a) => a.indexOf(v)===i)
+    .sort((a,b)=>a-b);
+
+  this.xInnerScale = scaleBand()
+    .domain(this.uniqueKeysArr)
+    .range([0, this.xScale.bandwidth()])
+    .paddingInner(0.05);
 
   this.colorPalette = [
     {
@@ -66,7 +96,7 @@ createScales(){
     },
     {
       "key":3,
-      "color": "#2ca02c"
+      "color": "#a8a8a8"
     },
     {
       "key":4,
@@ -156,9 +186,18 @@ updateAxis(){
 
 createBarChart(){
 
-  const rect = this.plot
-    .selectAll("rect")
-    .data(this.props.data,(d)=>d.key);
+  const rectSeries = this.plot
+    .selectAll(".series")
+    .data(this.seriesData,(d)=>d.key)
+    .enter()
+    .append("g")
+    .attr("transform",(d) => {
+      var xTranslate = this.xScale(d.key);
+      return "translate("+xTranslate+",0)"
+    })
+
+ const rect = rectSeries.selectAll("rect")
+    .data((d)=>d.value)
 
  rect
     .exit()
@@ -170,7 +209,7 @@ createBarChart(){
   rect
     .transition()
     .duration(this.props.speed)
-    .attr("x", (d) => this.xScale(d.key)+1)
+    .attr("x", (d) => this.xInnerScale(d.value.map((d)=> d.key)))
     .attr("y", d => this.yScale(d.value))
     .attr("height", d => this.props.size[1] - this.yScale(d.value) - 2* this.props.padding)
     .attr("width", this.xScale.bandwidth());
@@ -178,18 +217,17 @@ createBarChart(){
 rect
     .enter()
     .append("rect")
-    .attr("x",(d) => this.xScale(d.key)+1)
-    .attr("y",d => this.props.size[1] - 2* this.props.padding)
-    .attr("width", this.xScale.bandwidth())
+    .attr("x",(d) => this.xInnerScale(d.key))
+    .attr("y",(d) => this.props.size[1] - 2* this.props.padding)
+    .attr("width", this.xInnerScale.bandwidth())
     .on("mouseover", this.onHover)
-    .on("mouseout", this.onHoverOut)
-    .style("fill",(d) => "#ababab")
+    .on("mouseout", (d, i ,nodes) => this.onHoverOut(i, nodes[i]))
+    .style("fill",(d,i) => this.colorScale(i+1))
     .transition()
     .duration(this.props.speed)
-    .attr("x", (d) => this.xScale(d.key)+1)
     .attr("y", d => this.yScale(d.value))
-    .attr("height", d => this.props.size[1] - this.yScale(d.value) - 2* this.props.padding)
-    .attr("width", this.xScale.bandwidth())
+    .attr("height", (d,i) => this.props.size[1] - this.yScale(d.value) - 2* this.props.padding)
+    .attr("width", this.xInnerScale.bandwidth())
 
 
 }
@@ -240,22 +278,18 @@ addYAxisLabel(){
 
 }
 
-
-
-
-
-
 onHover(){
   select(this)
     .style("fill","orange");
 
 }
 
-onHoverOut(){
-  select(this)
+onHoverOut(i, node){
+
+  select(node)
   .transition()
   .duration(500)
-  .style("fill","#ababab");
+  .style("fill",this.colorScale(i+1));
 
 }
 
