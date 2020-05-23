@@ -187,9 +187,14 @@ class DataMap extends Component {
       (countryBounds[1][1] - countryBounds[0][1])/this.props.size[1]
     );
 
+    this.mapPathProjection.scale(s));
+
+
+
+
     console.log(countryBounds);
     console.log(selCentroid);
-    console.log(this.mapPathProjection(s));
+    console.log(;
   }
 
 
