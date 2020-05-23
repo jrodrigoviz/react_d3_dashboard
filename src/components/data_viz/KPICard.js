@@ -22,10 +22,12 @@ componentDidMount(){
   this.plot  = select(node)
                 .append("g")
                 .attr("id","shapes")
-                .attr("transform", "translate(" + this.props.padding + "," + this.props.padding + ")");
+                .attr("transform", "translate(" + this.props.padding/2 + "," + this.props.padding*1.5 + ")");
 
   this.aggregateData();
   this.createKPICard();
+  this.addTitle();
+
 };
 
 componentDidUpdate(){
@@ -35,14 +37,14 @@ componentDidUpdate(){
 
 aggregateData(){
   var summedData = sum(this.props.data.map((d)=>d.value))
-  this.data = [{key:"summedData",value:summedData}];
+  this.data = [{key:"summedData",value:summedData,decimal:this.props.decimal}];
 
 };
 
 createKPICard(){
 
   const kpiCard = this.plot
-    .selectAll("text")
+    .selectAll(".kpi-text")
     .data(this.data,(d)=>d.key);
 
   kpiCard
@@ -55,19 +57,36 @@ createKPICard(){
   .tween("text",function(d){
     var i = interpolate(parseInt(select(this).text()),d.value);
     return function(t){
-      select(this).text(Math.floor(i(t)));
+      var decimal = select(this).data()[0].decimal;
+      select(this).text(i(t).toFixed(decimal));
     };
   });
 
   kpiCard
   .enter()
   .append("text")
+  .attr("class","kpi-text")
   .attr("font-size",40)
-  .style("text-align","center")
+  .attr("text-anchor","start")
+  .style("text-align","right")
   .text((d)=>d.value);
 
 }
 
+addTitle(){
+
+  var textGroup = select(this.node)
+    .append("g")
+    .attr("transform","translate(0,"+this.props.padding/2+")");
+
+ textGroup
+    .append("text")
+    .attr("class","kpi-title")
+    .text(this.props.title);
+
+
+
+}
 
 render(){
   return <svg ref={node => this.node  = node}

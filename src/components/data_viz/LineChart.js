@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {scaleLinear, scaleBand,scaleOrdinal} from 'd3-scale';
 import {range,max,min,extent,group} from 'd3-array';
-import {curveBasis,curveLinear, line as d3Line} from 'd3-shape';
+import {curveBasis,curveLinear,curveCardinal,curveMonotoneX, line as d3Line} from 'd3-shape';
 import {keys,values} from 'd3-collection';
 import {select,selectAll,local} from 'd3-selection';
 import {axisBottom, axisLeft} from 'd3-axis';
@@ -39,11 +39,30 @@ componentDidMount(){
 componentDidUpdate(){
   this.createScales();
   this.updateAxis();
+  this.createLineGraph();
+  this.addSubTitle();
+  this.addXAxisLabel();
+  this.addYAxisLabel();
+  this.addLegend();
 }
 
 reshapeData(){
-  // group data by series
-  this.seriesData  = Array.from(group(this.props.data, (d)=> d.series),([key, value]) => ({key, value}));
+
+  //sort data
+  this.props.data.sort((a,b)=> (a.key-b.key));
+
+  this.seriesData  = Array.from(group(this.props.data, (d)=> d.series, (d)=>d.key),([key, innerValue]) =>{
+
+    var value = Array.from(innerValue,([key,v])=>{
+      var value = v[0].value;
+      //var series = v[0].series;
+
+      return {key,value}
+    });
+    return {key,value};
+  });
+
+  this.seriesData.sort((a,b)=>((a.key > b.key) ? 1 : ((b.key > a.key) ? -1 : 0)));
 
 }
 
@@ -144,7 +163,7 @@ createLineGraph(){
       .data(this.seriesData,(d)=>d.key);
 
   var lineFunction = d3Line()
-      .curve(curveBasis)
+      .curve(curveMonotoneX)
       .x((d)=>(this.xScale(d.key)))
       .y((d)=>(this.yScale(d.value)));
 
@@ -153,7 +172,12 @@ createLineGraph(){
 
   //update any existing elements with new data
   selectAll("g[id^=series]")
-    .each(function(d){eachLine.set(this,d)});
+    .selectAll("path")
+    .each(function(d){eachLine.set(this,d)})
+    .attr("d",function(d){return lineFunction(eachLine.get(this).value)})
+    .attr("fill","none")
+    .attr("stroke",function(d){return that.colorScale(eachLine.get(this).key)})
+    .attr("stroke-width", "2px");
 
   //for new data insert a group for each series and set each group with the data
   var lineGroups = line.enter()
@@ -169,21 +193,7 @@ createLineGraph(){
     .attr("stroke",function(d){return that.colorScale(eachLine.get(this).key)})
     .attr("stroke-width", "2px");
 
-
-  //after everything has been rendered animate the lines by adding transitions
-  selectAll("path[id$=path]").each(function(d) {
-    var pathLength = select(this).node().getTotalLength();
-
-    select(this)
-      .attr("stroke-dasharray", pathLength + " " + pathLength)
-      .attr("stroke-dashoffset", pathLength)
-      .transition()
-      .duration(4000)
-      .ease(easeCubic)
-      .attr("stroke-dashoffset", 0)
-
-    });
-
+    this.drawLines();
 
 };
 
@@ -196,8 +206,26 @@ addTitle(){
 
 };
 
+drawLines(){
+  //after everything has been rendered animate the lines by adding transitions
+
+  selectAll("path[id$=path]").each(function(d) {
+    var pathLength = select(this).node().getTotalLength();
+
+    select(this)
+      .attr("stroke-dasharray", pathLength + " " + pathLength)
+      .attr("stroke-dashoffset", pathLength)
+      .transition()
+      .duration(2000)
+      .ease(easeCubic)
+      .attr("stroke-dashoffset", 0)
+
+    });
+};
 
 addSubTitle(){
+  this.plot.select(".line-chart-subtitle").remove()
+
   this.plot.append("text")
     .text(this.props.subtitle)
     .attr("class","line-chart-subtitle")
@@ -208,6 +236,7 @@ addSubTitle(){
 };
 
 addXAxisLabel(){
+  this.plot.select(".x-axis-label").remove()
 
   this.plot.append("text")
     .text(this.props.xAxisLabel)
@@ -220,6 +249,7 @@ addXAxisLabel(){
 };
 
 addYAxisLabel(){
+  this.plot.select(".y-axis-label").remove()
 
   this.plot.append("text")
     .text(this.props.yAxisLabel)
@@ -234,10 +264,13 @@ addYAxisLabel(){
 
 addLegend(){
 
+  this.plot.select(".line-graph-legend").remove();
+
   var that = this;
 
+
   var legend = this.plot.append("g")
-    .attr("id","line-graph-legend");
+    .attr("class","line-graph-legend");
 
   var legendRectGroups = legend.selectAll("g")
     .data(this.seriesData)
@@ -285,7 +318,7 @@ addLegend(){
       return translation
     })
 
-  legend.attr("transform","translate("+(this.props.size[0]- (2*this.props.padding) - (totalTextWidth + (3*25)))+","+-this.props.padding/2+ ")")
+  legend.attr("transform","translate("+(this.props.size[0]- (2*this.props.padding) - (totalTextWidth + (3*25)))+","+(-this.props.padding/2 +20)+ ")")
 
 
 };

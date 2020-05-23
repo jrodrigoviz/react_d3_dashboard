@@ -60,24 +60,24 @@ function generateData(){
 
 };
 
+
 const data = generateData();
+
+//data = [{key:1,series:"Series A",value:2+1},{key:1,series:"Series A",value:3},{key:5,series:"Series A",value:2},{key:10,series:"Series A",value:5},{key:1,series:"Series B",value:4},{key:5,series:"Series B",value:6},{key:10,series:"Series B",value:1},{key:1,series:"Series C",value:1},{key:5,series:"Series C",value:3},{key:10,series:"Series C",value:16}]
+
+
 
 const VizExamples = (props) =>{
 
    const [dimensions, setDimensions] = useState({width:window.innerWidth <= 400 ? 350 : window.innerWidth <= 900 ? 375: Math.min(1024-2*50,window.innerWidth),height:450});
 
     useEffect(()=>{
-      var width = window.innerWidth;
-
       const debouncedHandleResize  = debounce (function handleResize (){
-        if(window.innerWidth != width ){
-
-          setDimensions({
-            height:350,
-            width: (window.innerWidth <= 400 ? 350 : window.innerWidth <= 900 ? 375: Math.min(1024-2*50,window.innerWidth))
-          });
-
-      }}, 100);
+        setDimensions({
+          height:350,
+          width: (window.innerWidth <= 400 ? 350 : window.innerWidth <= 900 ? 375: Math.min(1024-2*50,window.innerWidth))
+        });
+      }, 100);
 
       window.addEventListener("resize",debouncedHandleResize)
 
@@ -91,13 +91,8 @@ const VizExamples = (props) =>{
 
     <Grid container className={classes.lineGraph} >
     <Grid item>
-    <LineChart  size ={[dimensions.width,dimensions.height]} data={data} padding={50} speed={1000} title="Line Graph" subtitle = "subtitle " xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel" LegendOrientation= "horizontal"/>
-    </Grid>
-    <Grid item>
-    <BarChart size ={[dimensions.width,dimensions.height]} data={data} padding={50} speed={1000} title="Bar Graph" subtitle = "subtitle " xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel"/>
-    </Grid>
-    <Grid item>
-    <ClusteredBarChart size ={[dimensions.width,dimensions.height]} data={data} padding={50} speed={1000} title="Clustered Bar Graph" subtitle = "subtitle " xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel"/>
+    <ScatterPlot size ={[dimensions.width,dimensions.height]} padding={50} title="Scatter Plot" subtitle = "with KMeans Clustering" xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel" />
+    <div class="button-container"></div>
     </Grid>
     </Grid >
 

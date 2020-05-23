@@ -23,7 +23,7 @@ componentDidMount(){
   this.plot  = select(node);
 
   this.plot.append("th").text("key");
-  this.plot.append("th").text("dim");
+  this.plot.append("th").text("series");
   this.plot.append("th").text("value");
   this.updateDataTable();
 };
@@ -38,10 +38,25 @@ componentDidUpdate(){
 updateDataTable(){
 
   const tableRows = this.plot.selectAll("tr")
-    .data(this.data,(d)=>d.key);
+    .data(this.data,(d)=>(d.series));
 
   tableRows.exit()
     .remove();
+
+  tableRows
+      .style("opacity",0)
+      .transition()
+      .duration(this.props.speed)
+      .style("opacity",1)
+      .each(function(d){
+        select(this).selectAll(".col1")
+        .text(d.key);
+        select(this).selectAll(".col2")
+        .text(d.series);
+        select(this).selectAll(".col3")
+        .text(d.value);
+      });
+
 
   tableRows.enter()
     .append("tr")
@@ -53,7 +68,7 @@ updateDataTable(){
       select(this).append("td").attr("class","col1")
         .text(d.key);
       select(this).append("td").attr("class","col2")
-        .text(d.dim);
+        .text(d.series);
       select(this).append("td").attr("class","col3")
         .text(d.value);
     });
@@ -65,7 +80,7 @@ updateDataTable(){
 render(){
   return <table class={this.props.className} ref={node => this.node  = node}  style= {{display:"inline"}}
           width = {this.props.size[0]} height = {this.props.size[1]}>
-          <caption>{this.props.title}</caption>
+          <caption style= {{textAlign:"left"}}>{this.props.title}</caption>
          </table>;
   }
 

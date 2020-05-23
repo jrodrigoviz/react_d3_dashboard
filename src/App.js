@@ -6,13 +6,14 @@ import Stories from './components/pages/Stories';
 import About from './components/pages/About';
 import Dashboards from './components/pages/Dashboards';
 import VizExamples from './components/pages/VizExamples';
+import Interactive from './components/pages/Interactive';
+import Datasets from './components/pages/Datasets';
 import ToolbarNav from './components/components/Toolbar';
 
 
 class App extends Component {
   constructor(props){
     super(props)
-    this.onResize = this.onResize.bind(this);
     this.state = {screenWidth:window.innerWidth, screenHeight: window.innerHeight,data:[], appBar:200};
 
   };
@@ -20,16 +21,9 @@ class App extends Component {
   componentDidMount(){
     // async keyword waits until the promise is completed
 
-    window.addEventListener('resize', this.onResize);
-    this.onResize()
+    //window.addEventListener('resize', this.onResize);
+    //this.onResize()
   };
-
-  onResize(){
-    //console.log(window.innerHeight);
-    this.setState({screenWidth: window.innerWidth,
-      screenHeight: window.innerHeight})
-  };
-
 
   render() {
 
@@ -47,6 +41,8 @@ class App extends Component {
           <Route exact path="/" component = {Stories} />
           <Route path="/Stories/Story/:postID" component = {Story} />
           <Route path="/VizExamples" component = {VizExamples} />
+          <Route path="/Datasets" component = {Datasets} />
+          <Route path="/Interactive" component = {Interactive} />
           <Route path="/About" component = {About} />
 
       </div>

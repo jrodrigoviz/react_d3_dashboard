@@ -34,24 +34,28 @@ componentDidMount(){
 }
 
 componentDidUpdate(){
+  this.reshapeData();
   this.createScales();
   this.updateAxis();
-  //this.createBarChart();
+  this.createBarChart();
 }
 
 
 reshapeData(){
+
   // group data by series
   this.seriesData  = Array.from(group(this.props.data, (d)=> d.series, (d)=>d.key),([key, innerValue]) =>{
-    var value = Array.from(innerValue,([key,value])=>{
-      var value = value[0].value;
+
+    var value = Array.from(innerValue,([key,v])=>{
+      var value = v[0].value;
+      //var series = v[0].series;
 
       return {key,value}
     });
     return {key,value};
   });
 
-  console.log(this.seriesData);
+  this.seriesData.sort((a,b)=>((a.key > b.key) ? this.props.keySort : ((b.key > a.key) ? -this.props.keySort : 0)));
 
 }
 
@@ -62,6 +66,8 @@ createScales(){
 
   this.seriesMax = max(this.seriesData.map((d)=>d.value.length));
 
+  if(this.props.orientation =='vertical'){
+
   this.yScale = scaleLinear()
     .domain([0, this.dataMax])
     .range([this.props.size[1] - 2* this.props.padding, 0]);
@@ -70,8 +76,8 @@ createScales(){
   this.xScale = scaleBand()
     .domain(this.seriesData.map((d)=>d.key).sort((a,b)=>a-b))
     .range([0, this.props.size[0] - 2* this.props.padding])
-    .paddingInner(0.5)
-    .paddingOuter(0.1);
+    .paddingInner(0.1)
+    .paddingOuter(0.5);
 
   this.xAxis = axisBottom().scale(this.xScale);
 
@@ -84,6 +90,35 @@ createScales(){
     .domain(this.uniqueKeysArr)
     .range([0, this.xScale.bandwidth()])
     .paddingInner(0.05);
+
+  } else {
+
+    this.xScale = scaleLinear()
+      .domain([0, this.dataMax])
+      .range([0,this.props.size[0] - 2* this.props.padding]);
+
+    this.xAxis = axisBottom().scale(this.xScale);
+
+    this.yScale = scaleBand()
+      .domain(this.seriesData.map((d)=>d.key).sort((a,b)=>a-b))
+      .range([this.props.size[1] - 2* this.props.padding,0])
+      .paddingInner(0.1)
+      .paddingOuter(0.01);
+
+
+    this.yAxis = axisLeft().scale(this.yScale);
+
+    this.uniqueKeysArr = this.seriesData.map((d)=>(d.value.map((d)=>(d.key))))
+      .flat()
+      .filter((v,i,a) => a.indexOf(v)===i)
+      .sort((a,b)=>a-b);
+
+    this.yInnerScale = scaleBand()
+      .domain(this.uniqueKeysArr)
+      .range([0, this.yScale.bandwidth()])
+      .paddingInner(0.05);
+
+  }
 
   this.colorPalette = [
     {
@@ -186,18 +221,25 @@ updateAxis(){
 
 createBarChart(){
 
-  const rectSeries = this.plot
-    .selectAll(".series")
+if (this.props.orientation == "vertical") {
+
+  var rectSeries = this.plot
+    .selectAll(".bar-series");
+
+  rectSeries
+     .data(this.seriesData,(d)=>d.key)
+     .exit()
+     .remove();
+
+  rectSeries
     .data(this.seriesData,(d)=>d.key)
     .enter()
     .append("g")
-    .attr("transform",(d) => {
-      var xTranslate = this.xScale(d.key);
-      return "translate("+xTranslate+",0)"
-    })
+    .attr("class","bar-series")
 
- const rect = rectSeries.selectAll("rect")
-    .data((d)=>d.value)
+ var rect = this.plot.selectAll(".bar-series")
+    .selectAll("rect")
+    .data((d)=>d.value,(d)=> d.key);
 
  rect
     .exit()
@@ -207,16 +249,19 @@ createBarChart(){
     .remove();
 
   rect
+    .attr("height", d => this.props.size[1] - this.yScale(0) - 2* this.props.padding)
+    .attr("y", d => this.yScale(0))
     .transition()
     .duration(this.props.speed)
-    .attr("x", (d) => this.xInnerScale(d.value.map((d)=> d.key)))
+    .attr("x", (d) => this.xInnerScale(d.key))
     .attr("y", d => this.yScale(d.value))
     .attr("height", d => this.props.size[1] - this.yScale(d.value) - 2* this.props.padding)
-    .attr("width", this.xScale.bandwidth());
+    .attr("width", this.xInnerScale.bandwidth());
 
-rect
+ rect
     .enter()
     .append("rect")
+    .attr("class","bar-series-bar")
     .attr("x",(d) => this.xInnerScale(d.key))
     .attr("y",(d) => this.props.size[1] - 2* this.props.padding)
     .attr("width", this.xInnerScale.bandwidth())
@@ -229,8 +274,127 @@ rect
     .attr("height", (d,i) => this.props.size[1] - this.yScale(d.value) - 2* this.props.padding)
     .attr("width", this.xInnerScale.bandwidth())
 
+ // add text labels inside bar
 
-}
+ // add text labels inside bar
+ var rectText = this.plot
+    .selectAll(".clustered-bar-text")
+
+ rectText
+    .exit()
+    .remove()
+
+ rect
+    .enter()
+    .append("text")
+    .attr("class","clustered-bar-text")
+    .attr("transform",(d)=> "translate("+(this.xInnerScale(d.key)+this.xInnerScale.bandwidth())+","+(this.props.size[1]- 2* this.props.padding)+") rotate(-90)" )
+    .style("fill","#FFF")
+    .text(d=>d.key)
+
+  //move the bars over when rendered
+  this.plot.selectAll(".bar-series")
+      .attr("transform",(d) => {
+        var xTranslate = this.xScale(d.key);
+        return "translate("+xTranslate+",0)"
+      });
+
+  } else {
+
+      var rectSeries = this.plot
+        .selectAll(".bar-series");
+
+      rectSeries
+         .data(this.seriesData,(d)=>d.key)
+         .exit()
+         .remove();
+
+      rectSeries
+        .data(this.seriesData,(d)=>d.key)
+        .enter()
+        .append("g")
+        .attr("class","bar-series")
+
+     var rect = this.plot.selectAll(".bar-series")
+        .selectAll("rect")
+        .data((d)=>d.value,(d)=> d.key);
+
+     rect
+        .exit()
+        .transition()
+        .duration(900)
+        .style("opacity",0)
+        .remove();
+
+      rect
+        .attr("height", this.yInnerScale.bandwidth())
+        .attr("x",(d) => -100)
+        .attr("y", d => this.yInnerScale(0))
+        .attr("width",0)
+        .transition()
+        .duration(this.props.speed)
+        .attr("x", 1)
+        .attr("y", d => this.yInnerScale(d.key))
+        .attr("height", this.yInnerScale.bandwidth())
+        .attr("width", (d) => this.xScale(d.value));
+
+     rect
+        .enter()
+        .append("rect")
+        .attr("class","bar-series-bar")
+        .attr("x",(d) => -100)
+        .attr("y",(d) => this.yInnerScale(d.key))
+        .attr("height", (d,i) =>this.yInnerScale.bandwidth())
+        .attr("width",(d)=> 0)
+        .on("mouseover", this.onHover)
+        .on("mouseout", (d, i ,nodes) => this.onHoverOut(i, nodes[i]))
+        .style("fill",(d,i) => this.colorScale(i+1))
+        .transition()
+        .duration(this.props.speed)
+        .attr("x",1)
+        .attr("y", d => this.yInnerScale(d.key))
+        .attr("height", (d,i) =>this.yInnerScale.bandwidth())
+        .attr("width", (d)=>this.xScale(d.value))
+
+     // add text labels inside bar
+     var rectText = this.plot
+        .selectAll(".clustered-bar-text")
+
+     rectText
+        .exit()
+        .remove()
+
+    rectText
+       .style("opacity",0)
+       .transition()
+       .delay(1000)
+       .attr("font-size",Math.min(this.yInnerScale.bandwidth(),12))
+       .style("opacity",1)
+       .attr("transform",(d)=> "translate(0,"+(this.yInnerScale(d.key)+(this.yInnerScale.bandwidth()/1.5))+")" )
+
+     rect
+        .enter()
+        .append("text")
+        .attr("class","clustered-bar-text")
+        .attr("transform",(d)=> "translate(0,"+(this.yInnerScale(d.key)+(this.yInnerScale.bandwidth()/1.5))+")" )
+        .attr("font-size",Math.min(this.yInnerScale.bandwidth(),12))
+        .attr("dx","1em")
+        .style("fill","#FFF")
+        .text(d=>d.key +"-"+Math.round((d.value*100)/100))
+
+      //move the bars over when rendered
+      this.plot.selectAll(".bar-series")
+          .attr("transform",(d) => {
+            var yTranslate = this.yScale(d.key);
+            return "translate(0,"+yTranslate+")"
+          });
+
+
+
+  }
+
+};
+
 
 addTitle(){
   this.plot.append("text")
@@ -270,7 +434,7 @@ addYAxisLabel(){
   this.plot.append("text")
     .text(this.props.yAxisLabel)
     .attr("class","y-axis-label")
-    .attr("x",-(this.props.size[0] - 2*this.props.padding)/2 + this.props.padding)
+    .attr("x",-(this.props.size[1] - 2*this.props.padding)/2 + this.props.padding)
     .attr("y",-this.props.padding/2)
     .attr("dy","-0.5em")
     .style("text-anchor","middle")
@@ -287,7 +451,7 @@ onHover(){
 onHoverOut(i, node){
 
   select(node)
-  .transition()
+  .transition("color-transition")
   .duration(500)
   .style("fill",this.colorScale(i+1));
 

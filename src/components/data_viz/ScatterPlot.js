@@ -15,8 +15,6 @@ class ScatterPlot extends Component {
     this.createScatterPlot = this.createScatterPlot.bind(this);
     this.data = [];
     this.orientation = 'vertical';
-    this.width = this.props.size[0];
-    this.height = this.props.size[1];
     this.r = 3;
     this.padding = this.props.padding;
     this.speed = this.props.speed;
@@ -24,6 +22,8 @@ class ScatterPlot extends Component {
     this.yTicksNum = 5;
     this.barPaddingInner = 0.1;
     this.optionalColorPalette =[];
+    this.centerNodes = [];
+    this.k = 5;
 
 
 
@@ -46,6 +46,15 @@ componentDidMount(){
 
   };
 
+  componentDidUpdate(){
+
+    this.generateXScale();
+    this.generateYScale();
+    this.addAxis();
+    this.generateCircles();
+
+    };
+
 
 createScatterPlot(){
   this.padding = 50;
@@ -67,13 +76,13 @@ generateXScale() {
     .domain([0,max(this.data,function(d) {
       return d.x;
     })*1.2])
-    .range([0, this.width - 2 * this.padding])
+    .range([0, this.props.size[0] - 2 * this.padding])
   }else if (this.orientation=='horizontal'){
   this.xScale = scaleLinear()
     .domain([0,max(this.data,function(d){
       return d.y;
     })*1.2])
-    .range([0, this.width - 2 * this.padding])
+    .range([0, this.props.size[0] - 2 * this.padding])
   };
 
   this.xAxis = axisBottom().ticks(this.xTicksNum).scale(this.xScale);
@@ -85,13 +94,13 @@ generateYScale(){
     .domain([0, max(this.data, function(d) {
       return d.y ;
     }) * 1.2])
-    .range([this.height - 2 * this.padding, 0])
+    .range([this.props.size[1] - 2 * this.padding, 0])
 }else if(this.orientation=='horizontal'){
   this.yScale = scaleLinear()
     .domain(this.data.map(function(d) {
       return d.x;
     }))
-    .range([this.height - 2 * this.padding, 0])
+    .range([this.props.size[1] - 2 * this.padding, 0])
     .paddingInner(this.barPaddingInner);
 }
     this.yAxis = axisLeft().ticks(this.yTicksNum).scale(this.yScale);
@@ -170,7 +179,7 @@ addAxis() {
   this.plot.append("g")
     .attr("id", "x-axisGroup")
     .attr("class", "x-axis")
-    .attr("transform", "translate(" + "0" + "," + (this.height - 2 * this.padding) + ")");
+    .attr("transform", "translate(" + "0" + "," + (this.props.size[1] - 2 * this.padding) + ")");
 
   this.plot.select(".x-axis")
     .transition()
@@ -403,7 +412,7 @@ updateReferenceLines(){
 addKMeansClusters(){
 
   var that = this;
-  this.kmeans = new KMeans(this.data,5);
+  this.kmeans = new KMeans(this.data,this.k);
   this.clusterData = this.kmeans.centroidList;
 
   this.plot.selectAll(".clusterCircle")
@@ -475,29 +484,20 @@ boxMuller(mu,sigma,u1){
 
 generateData(){
 
-  this.center1 = {
-    x:10,
-    y:20,
-    mu:1,
-    sigma:1
+  for(var i=0; i<this.k;i++){
+      var centerNode = {
+        x:Math.floor(Math.random() * (20 - 0 + 1)) + 0,
+        y:Math.floor(Math.random() * (20 - 0 + 1)) + 0,
+        mu:Math.floor(Math.random() * (2 - 0 + 1)) + 0,
+        sigma:Math.floor(Math.random() * (0 - 2 + 1)) + 0
+      }
+
+      this.centerNodes.push(centerNode);
+      this.data.push(centerNode);
+
   };
 
-  this.center2 = {
-    x:10,
-    y:10,
-    mu:2,
-    sigma:3
-  };
-
-  this.center3 = {
-    x:4,
-    y:7,
-    mu:3,
-    sigma:2
-  };
-
-
-  this.data.push(this.center1,this.center2,this.center3);
+    this.updateBars();
 
 };
 
@@ -505,30 +505,17 @@ updateData(){
 
   var i=0;
 
-  for(i=0;i<=20;i++){
+  for(i=0;i<=50;i++){
     var u1 = Math.random();
 
-    var newEntry = {
-      x: this.center1.x + this.boxMuller(this.center1.mu,this.center1.sigma,u1),
-      y: this.center1.y + this.boxMuller(this.center1.mu,this.center1.sigma,u1)
-    };
+    for(var j=0; j<3;j++){
+      var newEntry = {
+        x: this.centerNodes[j].x + this.boxMuller(this.centerNodes[j].mu,this.centerNodes[j].sigma,u1),
+        y: this.centerNodes[j].y + this.boxMuller(this.centerNodes[j].mu,this.centerNodes[j].sigma,u1)
+      }
 
-    this.data.push(newEntry);
-
-    var newEntry1 = {
-      x: this.center2.x + this.boxMuller(this.center2.mu,this.center2.sigma,u1),
-      y: this.center2.y + this.boxMuller(this.center2.mu,this.center2.sigma,u1)
-    };
-
-    this.data.push(newEntry1);
-
-    var newEntry2 = {
-      x: this.center3.x + this.boxMuller(this.center3.mu,this.center3.sigma,u1),
-      y: this.center3.y + this.boxMuller(this.center3.mu,this.center3.sigma,u1)
-    };
-
-    this.data.push(newEntry2);
-
+      this.data.push(newEntry);
+    }
   };
 
   this.updateBars();
@@ -694,7 +681,7 @@ render(){
 
 
 var KMeans = function(dataset,k){
-  this.k = k;
+  this.k = k-2;
   this.dataset = dataset;
   this.centroidList = [];
 

@@ -70,11 +70,11 @@ generatePolarScale(){
   //using [-r,r] as the domain
   this.polarYScale = scaleLinear()
     .domain([-this.r,this.r])
-    .range([this.height - 2 * this.padding, 0]);
+    .range([this.props.size[1]- 2 * this.padding, 0]);
 
   this.polarXScale = scaleLinear()
   .domain([-this.r,this.r])
-  .range([0, this.width - 2 * this.padding]);
+  .range([0, this.props.size[0] - 2 * this.padding]);
 
   this.yAxis = axisLeft().ticks(3).scale(this.polarYScale);
   this.xAxis = axisBottom().ticks(3).scale(this.polarXScale);
