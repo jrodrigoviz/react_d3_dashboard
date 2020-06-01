@@ -192,6 +192,7 @@ const Datasets = (props) =>{
       }else{
       cfDims.dims.CountryFilter.filterFunction((x)=> d.indexOf(x)>-1);
     }
+    
       setCFData({updateCount:cfData.updateCount+1,unfilterCount:cfData.unfilterCount,dataset:cfData.dataset,continent:cfData.continent, countries:d, countriesSuperFilter:cfData.countriesSuperFilter});
   };
 
