@@ -9,6 +9,7 @@ import {transition, interrupt} from 'd3-transition';
 import {geoPath, geoEquirectangular, geoMercator} from 'd3-geo';
 import {zoom, zoomTransform, zoomIdentity} from 'd3-zoom';
 import rewind from '@mapbox/geojson-rewind';
+import union from '@turf/union';
 
 class DataMap extends Component {
   constructor(props) {
@@ -27,23 +28,12 @@ class DataMap extends Component {
     this.mapData = this.props.data;
 
     this.plot = select(node)
-    //.attr("viewBox","0 0 500 500")
-    /*
-      .append("svg")
-      .attr('width', this.props.size[0])
-      .attr('height', this.props.size[1])
-      .attr('padding', this.props.padding)
-      */
       .append("g")
       .attr("id", "zoomTransform")
       .append("g")
       .attr("class", "dataMap")
 
     this.drawMapOutline();
-    //this.reshapeData();
-    //this.createDataMap();
-    //his.addTitle();
-    //this.addSubTitle();
     // options for map
     this.centerXOffset = 1;
     this.centerYOffset = 1;
@@ -64,11 +54,6 @@ class DataMap extends Component {
   componentDidUpdate() {
     this.drawMapOutline();
     this.moveToCountry();
-    //this.reshapeData();
-    //this.createScales();
-    //this.updateAxis();
-    //this.createDataMap();
-    //this.updateSelectedBars();
   }
 
   reshapeData() {
@@ -151,12 +136,13 @@ class DataMap extends Component {
       .transition()
       .duration(1000)
       .attr(
-        "stroke-width", (d) => this.props.highlightCountries.indexOf(d.properties.ADMIN) > -1
+        "stroke-width", (d) => Object.keys(this.props.initialHighlight).indexOf(d.properties.ADMIN) > -1
         ? "1px"
         : "0px")
+      .attr("stroke", "#000")
       .attr(
-        "fill", (d) => this.props.highlightCountries.indexOf(d.properties.ADMIN) > -1
-        ? "#ff7f0e"
+        "fill", (d) => Object.keys(this.props.initialHighlight).indexOf(d.properties.ADMIN) > -1
+        ? this.props.initialHighlight[d.properties.ADMIN]
         : "#ababab")
 
     // update only filtered country groups with stroke and highlight changes
@@ -190,62 +176,70 @@ class DataMap extends Component {
       .append("path")
       .attr("d", d => {
         return this.mapPathProjection(rewind(d.geometry, true))
-      });
+      })
+      .on("click",d=> this.sendClicked(this.props,{key:d.properties.ADMIN}));
+
+
+    // find the centroid of each country and add text to highlight the country name
+    this
+      .plot
+      .selectAll(".mapBaseLayer")
+      .filter((d) => Object.keys(this.props.initialHighlight).indexOf(d.properties.ADMIN) > -1)
+      .append("text")
+      .text(d => d.properties.ADMIN)
+      .attr("font-size", (d) => 0.1*(this.mapPathProjection.bounds(d.geometry)[1][1] - this.mapPathProjection.bounds(d.geometry)[0][1]))
+      .attr("x", (d,i,node) => this.mapPathProjection.bounds(d.geometry)[0][0] +  0.25 *(this.mapPathProjection.bounds(d.geometry)[1][0] - this.mapPathProjection.bounds(d.geometry)[0][0] ) )
+      .attr("y", (d) => this.mapPathProjection.centroid(d.geometry)[1]);
 
   };
 
   moveToCountry() {
 
+    var highlightedCountries = this.props.highlightCountries.length > 0 ? this.props.highlightCountries : [];
+    var continentCountries = this.props.continentCountries.length >0 ? this.props.continentCountries : [];
+
+    var combinedCountries = highlightedCountries.concat(continentCountries);
+    var uniqueSelectedCountries = combinedCountries.filter((v, i, a) => a.indexOf(v) === i);
+
     var selectedCountryPath = this
       .props
       .data
-      .filter(d => this.props.highlightCountries.indexOf(d.properties.ADMIN) > -1);
-
-    var selectedContinentPath = this
-      .props
-      .data
-      .filter(d => this.props.continentCountries.indexOf(d.properties.ADMIN) > -1)
+      .filter(d => uniqueSelectedCountries.indexOf(d.properties.ADMIN) > -1);
 
     var s = 1;
     var translateArr = [0,0];
 
-    if (selectedCountryPath.length > 0) {
+    if (uniqueSelectedCountries.length > 0) {
+
       var boundLL = [];
       var boundUR = [];
 
-      for (const country of selectedCountryPath) {
-        var bounds = this
-          .mapPathProjection
-          .bounds(country.geometry);
-        boundLL.push(bounds[0]);
-        boundUR.push(bounds[1]);
+      var unionCountries = [];
 
-        var countryBounds = [
-          boundLL.reduce(
-            (a, b) => a[0] < b[0]
-            ? a
-            : b),
-          boundUR.reduce(
-            (a, b) => a[1] > b[1]
-            ? a
-            : b)
-        ]
-        //location of the country relative to the current projection
+      for (const country of selectedCountryPath) {
+        unionCountries.push(country);
+      }
+
+      // use the turf library to union the polygons together
+      var unionCountriesPolygon = unionCountries.reduce((a,b) => union(a,b));
+
+      //find bounding box of the unioned polygons
+      var countryBounds = this
+        .mapPathProjection
+        .bounds(unionCountriesPolygon);
 
         var dx = countryBounds[1][0] - countryBounds[0][0];
         var dy = countryBounds[1][1] - countryBounds[0][1];
         var x = (countryBounds[0][0] + countryBounds[1][0]) / 2;
         var y = (countryBounds[0][1] + countryBounds[1][1]) / 2;
-        var s = 0.35/ Math.max(dx / this.props.size[0], dy / this.props.size[1]);
+        var s = 0.5/ Math.max(dx / this.props.size[0], dy / this.props.size[1]);
         var translateArr = [
           (this.props.size[0] / 2) - s * x,
           (this.props.size[1] / 2) - s * y
         ];
-      }
+
 
     }
-
-
       // if navigated programatically then reset the zoom state to the programmatic zoom to avoid jumps
       select(this.node)
         .select("#zoomTransform")
@@ -254,16 +248,16 @@ class DataMap extends Component {
       // zoom to the selected regions bounding box
       select(this.node)
         .select(".dataMap")
-        .transition()
+        .transition("country-move-transition")
         .duration(1000)
         .attr("transform", "translate(" + translateArr[0] + "," + translateArr[1] + ") scale(" + s + ")");
 
-
+      /*
       this.plot
         .selectAll(".mapBaseLayer")
         .select("text")
         .remove();
-
+        */
       // find the centroid of each country and add text to highlight the country name
       this
         .plot
@@ -385,16 +379,15 @@ class DataMap extends Component {
       }
     };
 
-    this.updateSelectedBars();
-
   };
 
 
   render() {
-    return ( <svg ref = {node => this.node = node} width = {this.props.size[0]} height = {this.props.size[1]} >
-      < /svg>
-
-    )
+    return (
+       <div><p style={{textAlign:"left"}}>{this.props.title}</p>
+       <svg ref = {node => this.node = node} width = {this.props.size[0]} height = {this.props.size[1]}></svg>
+       </div>
+)
   }
 
 }

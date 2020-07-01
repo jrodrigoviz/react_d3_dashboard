@@ -1,5 +1,6 @@
 import React,{Component,useEffect,useState,createContext,useContext} from 'react';
 import {json} from 'd3-fetch';
+import {piecewise, interpolateRgb} from 'd3-interpolate'
 import {Paper, Typography, Grid, Button, Divider, Select, FormControl, MenuItem, InputLabel} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import LineChart from '../data_viz/LineChart';
@@ -10,6 +11,7 @@ import ScatterPlot from '../data_viz/ScatterPlot';
 import RadarChart from '../data_viz/RadarChart';
 import ClusteredBarChart from '../data_viz/ClusteredBarChart';
 import DataMap from '../data_viz/DataMap';
+import SmallCircleMultiple from '../data_viz/SmallCircleMultiple';
 import crossfilter from 'crossfilter2';
 
 //debounce the resize events to minimize resizing times. Once per 0.1s
@@ -121,31 +123,75 @@ const Datasets = (props) =>{
 
    function processedGroupedCF(mode){
 
-
-
      if( typeof cfDims.dims === 'undefined' ){
        return [{key:0,series:0,value:0}];
      }else{
        switch(mode){
+         // used for bar chart - does not filter itself
          case 1:
           var value = cfDims.dims.CountryFilter.group().reduce(reduceAdd,reduceRemove,reduceInitial).order(d=>d.avg).top(Infinity).filter((d,i,x) => d.value.count > 1).filter((d,i,x) => (cfData.dataset == 1? i<=10: i >=x.length-10)).map(d =>({series:d.key,value:Math.round(d.value.avg*10)/10}));
+          var sortedValue = cfDims.dims.CountryFilter.group().reduce(reduceAdd,reduceRemove,reduceInitial).order(d=>d.avg).top(Infinity).filter((d,i,x) => d.value.count > 1).filter((d,i,x) => (cfData.dataset == 1? i<=10: i >=x.length-10)).sort((a,b) =>a.value.avg_sweetness >b.value.avg_sweetness ? 1:-1);
+          sortedValue.forEach((d,i)=>d.sweet_rnk=i);
           break;
+        // used for data table
         case 2:
           var value = cfDims.dims.Country.group().reduce(reduceAdd,reduceRemove,reduceInitial).order(d=>d.avg).top(Infinity).filter((d,i,x) => d.value.count > 1 && d.value.avg>0).filter((d,i,x) => cfData.dataset == 1? i<=10: i >=x.length-10).map((d,i) =>({series:d.key,value:Math.round(d.value.avg*10)/10}));
           break;
+        // used for regions
         case 3:
           if(cfDims.dims.CountryFilter.hasCurrentFilter()==undefined || cfDims.dims.CountryFilter.hasCurrentFilter()==false){
-            var value = [{key:"",series:"Choose a Country",value:undefined}]
+            var value = [{child:"Choose a Country to see subregions",series:"",parent:"Choose a Country to see subregions",value:0}]
           }else{
-            var value = cfDims.dims.Region.group().reduce(reduceAdd,reduceRemove,reduceInitial).top(Infinity).filter((d,i,x) => d.value.count >= 1).map((d)=>({series:d.key.split("-")[0],key:d.key.split("-")[1],value:d.value.avg}));
-          }
+            var value = cfDims.dims.Region.group().reduce(reduceAdd,reduceRemove,reduceInitial).top(Infinity).filter((d,i,x) => (d.value.count >= 1) && (d.key.split("-")[1] != 'N/A' && d.key.split("-")[1] != 'Test') )
+            .map((d)=>{
+            var dict = {
+              key:"-",
+              parent:d.key.split("-")[0],
+              child:d.key.split("-")[1].substr(0,20) + (d.key.split("-")[1].length>20 ? "...":""),
+              cupScore:d.value.avg,
+              sweetness:d.value.avg_sweetness,
+              acidity:d.value.avg_acidity,
+              body:d.value.avg_body
+            }
+            return dict
+            });
+
+            value.sort((a,b) =>a.sweetness >b.sweetness ? 1:-1).forEach((d,i,k)=>d.sweet_rnk=(i/k.length));
+            value.sort((a,b) =>a.acidity >b.acidity ? 1:-1).forEach((d,i,k)=>d.acidity_rnk=(i/k.length));
+            value.sort((a,b) =>a.body >b.body ? 1:-1).forEach((d,i,k)=>d.body_rnk=(i/k.length));
+
+            //sort back to alpha order
+            value.sort((a,b)=>a.child > b.child ? 1:-1);
+          };
+
           break;
+       // used for country list only (datamap)
+       case 4:
+          var value = {};
+          var rawData = cfDims.dims.Country.group().reduce(reduceAdd,reduceRemove,reduceInitial).order(d=>d.avg).top(Infinity).filter((d,i,x) => d.value.count > 1 && d.value.avg>0).filter((d,i,x) => cfData.dataset == 1? i<=50: i >=x.length-50)
+          // rank each country with each respective note
+          rawData.sort((a,b) =>a.value.avg_sweetness >b.value.avg_sweetness ? 1:-1).forEach((d,i)=>d.sweet_rnk=i);
+          rawData.sort((a,b) =>a.value.avg_acidity >b.value.avg_acidity ? 1:-1).forEach((d,i)=>d.acidity_rnk=i);
+          rawData.sort((a,b) =>a.value.avg_body >b.value.avg_body ? 1:-1).forEach((d,i)=>d.body_rnk=i);
+
+          rawData.forEach((d,i) => value[d.key]=mapColorMixer(d.key, d.sweet_rnk,d.acidity_rnk,d.body_rnk));
+
        }
 
        return value;
    };
 
    };
+
+   function mapColorMixer(key,sweet,acid,body){
+     var noteDataArr = [sweet/27,acid/27,body/27];
+     var noteArr =["Sweetness","Acidity","Body"];
+     var colorScale = ["#f4c2c2","#32cd32","#b5651d"];
+     var primaryNoteInd =  noteDataArr.indexOf(Math.max(...noteDataArr));
+     var secondaryNoteInd = noteDataArr.indexOf(Math.min(...noteDataArr));
+
+     return colorScale[primaryNoteInd];
+   }
 
    function processedTotalCF(mode){
 
@@ -187,16 +233,18 @@ const Datasets = (props) =>{
    };
 
    function parentCallback(d){
+
       if(d.length == 0){
         cfDims.dims.CountryFilter.filterAll();
       }else{
       cfDims.dims.CountryFilter.filterFunction((x)=> d.indexOf(x)>-1);
     }
-    
-      setCFData({updateCount:cfData.updateCount+1,unfilterCount:cfData.unfilterCount,dataset:cfData.dataset,continent:cfData.continent, countries:d, countriesSuperFilter:cfData.countriesSuperFilter});
+
+     setCFData({updateCount:cfData.updateCount+1,unfilterCount:cfData.unfilterCount,dataset:cfData.dataset,continent:cfData.continent, countries:d, countriesSuperFilter:cfData.countriesSuperFilter});
   };
 
   function handleDatasetChange(d){
+
      setCFData({updateCount:cfData.updateCount+1,unfilterCount:cfData.unfilterCount,dataset:d.target.value,continent:cfData.continent, countries:cfData.countries, countriesSuperFilter:cfData.countriesSuperFilter});
 
  };
@@ -259,7 +307,6 @@ const Datasets = (props) =>{
     },[]);
 
 
-
   const classes = useStyles();
 
   return (
@@ -304,44 +351,37 @@ const Datasets = (props) =>{
             </Select>
           </FormControl>
           </Grid>
-          <Grid item>
-           <FormControl style={{minWidth:120}} >
-            <InputLabel id="top-n-label">Countries</InputLabel>
-             <Select labelId="top-n-label" id = "tn-label" value ={cfData.dataset} onChange={handleDatasetChange}>
-               <MenuItem value={1}>Top Ten</MenuItem>
-               <MenuItem value={2}>Bottom Ten</MenuItem>
-             </Select>
-           </FormControl>
-         </Grid>
+         <Grid item>
+        </Grid>
           <Grid item>
             <Button onClick={()=>unfilterCF()}>Reset Filters</Button>
           </Grid>
+          {/*
         </Grid>
-        <Grid container id="map-box">
+
+        <Grid container id="chart-row" style={{marginTop:"20px"}}>
           <Grid item>
-            <DataMap parentCallback={parentCallback} size ={[1000,400]} data={data.mapData} continentCountries ={cfData.countriesSuperFilter} highlightCountries = {cfData.countries} unfilter = {cfData.unfilterCount} padding={50} speed={1000} keysort={1} selection={1} title={"Top 10 Countries by Coffee Ratings"} subtitle = "Rated By Total Points" xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel" highlightColor="pink"/>
+            <BarChart parentCallback={parentCallback} size ={[dimensions.width/2,300]} data={processedGroupedCF(1)} unfilter = {cfData.unfilterCount} padding={50} xAdjust={35} speed={1000} keysort={1} selection={1} title={"Top 10 Countries by Coffee Ratings"} subtitle = "Rated By Total Points" xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel" highlightColor="pink"/>
           </Grid>
-        </Grid>
-        <Grid container id="chart-row">
           <Grid item>
-            <BarChart parentCallback={parentCallback} size ={[dimensions.width/2,400]} data={processedGroupedCF(1)} unfilter = {cfData.unfilterCount} padding={100} speed={1000} keysort={1} selection={1} title={"Top 10 Countries by Coffee Ratings"} subtitle = "Rated By Total Points" xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel" highlightColor="pink"/>
+            <RadarChart size ={[dimensions.width/2,300]} data={processedTotalCF(6)} r={3} shapeFill={"#ababab"} padding={100} speed={1000} keysort={-1}  title={"Top 10 Countries by Coffee Ratings"} subtitle = "Rated By Total Points" xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel" />
           </Grid>
           <Grid item>
             <ClusteredBarChart parentCallback={parentCallback} size ={[dimensions.width/2,400]} data={processedGroupedCF(3)} unfilter = {cfData.unfilterCount} padding={100} speed={1000} keysort={1} selection={1} title={"Top 10 Regions by Coffee Ratings"} subtitle = "Rated By Total Points" highlightColor="pink"/>
           </Grid>
-
-          <Grid item>
-            <RadarChart size ={[dimensions.width/2,400]} data={processedTotalCF(6)} r={3} shapeFill={"#ababab"} padding={100} speed={1000} keysort={-1}  title={"Top 10 Countries by Coffee Ratings"} subtitle = "Rated By Total Points" xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel" />
-          </Grid>
-
-
+          */}
         </Grid>
-        <Grid container id="detailed-tables" >
+        <Grid container id="map-box">
           <Grid item>
-          <DataTable size ={[100,100]} data={processedGroupedCF(2)} padding={50} speed={1000} keysort={1} title={"Detailed Tables"} subtitle = "subtitle" xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel"/>
+            <DataMap parentCallback={parentCallback} size ={[1000,350]} data={data.mapData} continentCountries ={cfData.countriesSuperFilter} highlightCountries = {cfData.countries} initialHighlight = {processedGroupedCF(4)} padding={50} speed={1000} keysort={1} selection={1} title={"Top Producing Coffee Countries"} subtitle = "Rated By Total Points" xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel" highlightColor="pink"/>
           </Grid>
         </Grid>
-      </Grid >
+        <Grid container id="subregion-box">
+          <Grid item>
+            <SmallCircleMultiple size ={[1000,500]} padding ={50/2} r={15} data={processedGroupedCF(3)} title={"Subregions in the Selected Country"} legendKeys={['Acidity','Sweetness','Body']}> </SmallCircleMultiple>
+        </Grid>
+      </Grid>
+        </Grid>
 )
 
 }

@@ -6,6 +6,7 @@ import LineChart from '../data_viz/LineChart';
 import BarChart from '../data_viz/BarChart';
 import ScatterPlot from '../data_viz/ScatterPlot';
 import ClusteredBarChart from '../data_viz/ClusteredBarChart';
+import SmallCircleMultiple from '../data_viz/SmallCircleMultiple';
 
 
 //debounce the resize events to minimize resizing times. Once per 0.1s
@@ -90,6 +91,10 @@ const VizExamples = (props) =>{
   return (
 
     <Grid container className={classes.lineGraph} >
+      <Grid item>
+        <SmallCircleMultiple size ={[1000,500]} padding ={50}> </SmallCircleMultiple>
+      </Grid>
+    {/*
     <Grid item>
     <LineChart  size ={[dimensions.width,dimensions.height]} data={data} padding={50} speed={1000} title="Line Graph" subtitle = "subtitle " xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel" LegendOrientation= "horizontal"/>
     </Grid>
@@ -99,6 +104,8 @@ const VizExamples = (props) =>{
     <Grid item>
     <ClusteredBarChart size ={[dimensions.width,dimensions.height]} data={data} padding={50} speed={1000} title="Clustered Bar Graph" subtitle = "subtitle " xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel"/>
     </Grid>
+    */
+    }
     </Grid >
 
 )

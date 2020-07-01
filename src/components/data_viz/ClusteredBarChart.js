@@ -48,7 +48,6 @@ reshapeData(){
 
     var value = Array.from(innerValue,([key,v])=>{
       var value = v[0].value;
-      //var series = v[0].series;
 
       return {key,value}
     });

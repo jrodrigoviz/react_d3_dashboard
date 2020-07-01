@@ -24,7 +24,7 @@ class BarChart extends Component {
     this.plot = select(node)
       .append("g")
       .attr("id", "shapes")
-      .attr("transform", "translate(" + this.props.padding + "," + this.props.padding + ")");
+      .attr("transform", "translate(" + (this.props.xAdjust+this.props.padding) + ","+this.props.padding + ")");
     this.reshapeData();
     this.createScales();
     this.createAxis();
@@ -72,7 +72,7 @@ class BarChart extends Component {
 
       this.yScale = scaleLinear()
         .domain([0, this.dataMax])
-        .range([this.props.size[1] - 2 * this.props.padding, 0]);
+        .range([this.props.size[1] - 2* this.props.padding, 0]);
 
       this.yAxis = axisLeft().scale(this.yScale);
 
