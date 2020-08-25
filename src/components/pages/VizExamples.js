@@ -91,21 +91,17 @@ const VizExamples = (props) =>{
   return (
 
     <Grid container className={classes.lineGraph} >
-      <Grid item>
-        <SmallCircleMultiple size ={[1000,500]} padding ={50}> </SmallCircleMultiple>
-      </Grid>
-    {/*
     <Grid item>
     <LineChart  size ={[dimensions.width,dimensions.height]} data={data} padding={50} speed={1000} title="Line Graph" subtitle = "subtitle " xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel" LegendOrientation= "horizontal"/>
     </Grid>
     <Grid item>
-    <BarChart size ={[dimensions.width,dimensions.height]} data={data} padding={50} speed={1000} title="Bar Graph" subtitle = "subtitle " xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel"/>
+    <BarChart size ={[dimensions.width,dimensions.height]} data={data} padding={50} speed={1000} xAdjust ={0} title="Bar Graph" subtitle = "subtitle " xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel"/>
     </Grid>
     <Grid item>
     <ClusteredBarChart size ={[dimensions.width,dimensions.height]} data={data} padding={50} speed={1000} title="Clustered Bar Graph" subtitle = "subtitle " xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel"/>
     </Grid>
-    */
-    }
+    
+  
     </Grid >
 
 )

@@ -1,7 +1,7 @@
 import React,{Component,useEffect,useState,createContext,useContext} from 'react';
 import {json} from 'd3-fetch';
 import {piecewise, interpolateRgb} from 'd3-interpolate'
-import {Paper, Typography, Grid, Button, Divider, Select, FormControl, MenuItem, InputLabel} from '@material-ui/core';
+import {Paper, Typography, Grid, Button, Divider,Link,List, Select, FormControl, MenuItem, InputLabel, ListItem} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import LineChart from '../data_viz/LineChart';
 import BarChart from '../data_viz/BarChart';
@@ -38,6 +38,10 @@ const useStyles = makeStyles(theme => ({
     textAlign:'',
     fontSize:15
     }
+  },
+  root:{
+    textAlign:"left",
+    margin:'1em'
   }
 
 }));
@@ -75,7 +79,7 @@ function reduceRemove(p, v){
        avg_acidity:p.count_acidity -1> 0 ? (p.sum_acidity - v.Acidity)/(p.count_acidity - 1) :0,
        sum_body:p.sum_body - v.Body,
        count_body: p.count_body- 1,
-       avg_body:p.count_body -1> 0 ? (p.sum_body - v.Body)/(p.count_body - 1) :0
+       avg_body:p.count_body -1> 0 ? (p.supm_body - v.Body)/(p.count_body - 1) :0
 
 
       }
@@ -310,6 +314,18 @@ const Datasets = (props) =>{
   const classes = useStyles();
 
   return (
+      <div>
+      <Typography className={classes.root} component="h5" variant = "h5"> The World of Coffee  </Typography>
+      <Typography className={classes.root} component="p" variant = "body"> This visual map shows the results from over 1,000 coffee scores from the <Link href="https://www.coffeeinstitute.org/"> Coffee Institute's</Link> coffee database. Scores are determined by certified individuals known as Q-Graders, who follow grading guidelines set out by the institution and submit their scores to the institution</Typography>
+      <Typography className={classes.root} component="p" variant="p">The coffees are graded on various flavor profiles to come up with a score but the 3 main ones here are:
+      <List>
+        <ListItem > Sweetness -  refers to a pleasing fullness of flavor as well as any obvious sweetness  </ListItem>
+        <ListItem > Body - the tactile feeling of the liquid in the mouth</ListItem>
+        <ListItem > Acidity - described as "brightness" when favorable or "sour" when unfavorable </ListItem>
+      </List> 
+      </Typography>
+      <Typography className={classes.root} component="p" variant="p">Check out the map below to find out coffees from around the world. Countries in pink will largely have a sweet profile, in green an acidic one and brown one that is high in body.</Typography>
+
       <Grid container className={classes.lineGraph} >
         <Grid container id="KPI-row" justify="space-evenly">
           <Grid item >
@@ -339,7 +355,7 @@ const Datasets = (props) =>{
           </Grid>
           </Grid>
         </Grid>
-        <Grid container id ="button-row" justify="space-evenly">
+        <Grid container id ="button-row" justify="left">
           <Grid item>
           <FormControl style={{minWidth:120}} >
            <InputLabel id="top-n-label">Continent</InputLabel>
@@ -353,23 +369,6 @@ const Datasets = (props) =>{
           </Grid>
          <Grid item>
         </Grid>
-          <Grid item>
-            <Button onClick={()=>unfilterCF()}>Reset Filters</Button>
-          </Grid>
-          {/*
-        </Grid>
-
-        <Grid container id="chart-row" style={{marginTop:"20px"}}>
-          <Grid item>
-            <BarChart parentCallback={parentCallback} size ={[dimensions.width/2,300]} data={processedGroupedCF(1)} unfilter = {cfData.unfilterCount} padding={50} xAdjust={35} speed={1000} keysort={1} selection={1} title={"Top 10 Countries by Coffee Ratings"} subtitle = "Rated By Total Points" xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel" highlightColor="pink"/>
-          </Grid>
-          <Grid item>
-            <RadarChart size ={[dimensions.width/2,300]} data={processedTotalCF(6)} r={3} shapeFill={"#ababab"} padding={100} speed={1000} keysort={-1}  title={"Top 10 Countries by Coffee Ratings"} subtitle = "Rated By Total Points" xAxisLabel = "xAxisLabel" yAxisLabel = "yAxisLabel" />
-          </Grid>
-          <Grid item>
-            <ClusteredBarChart parentCallback={parentCallback} size ={[dimensions.width/2,400]} data={processedGroupedCF(3)} unfilter = {cfData.unfilterCount} padding={100} speed={1000} keysort={1} selection={1} title={"Top 10 Regions by Coffee Ratings"} subtitle = "Rated By Total Points" highlightColor="pink"/>
-          </Grid>
-          */}
         </Grid>
         <Grid container id="map-box">
           <Grid item>
@@ -382,6 +381,7 @@ const Datasets = (props) =>{
         </Grid>
       </Grid>
         </Grid>
+        </div>
 )
 
 }

@@ -30,6 +30,8 @@ class BarChart extends Component {
     this.createAxis();
     this.createBarChart();
     this.addTitle();
+    this.addXAxisLabel();
+    this.addYAxisLabel();
     this.addSubTitle();
     this.selectedKeys = [];
     this.multiselectMode = 0;

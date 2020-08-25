@@ -7,7 +7,7 @@ import About from './components/pages/About';
 import Dashboards from './components/pages/Dashboards';
 import VizExamples from './components/pages/VizExamples';
 import Interactive from './components/pages/Interactive';
-import Datasets from './components/pages/Datasets';
+import CoffeeWorld from './components/pages/CoffeeWorld';
 import ToolbarNav from './components/components/Toolbar';
 
 
@@ -41,7 +41,7 @@ class App extends Component {
           <Route exact path="/" component = {Stories} />
           <Route path="/Stories/Story/:postID" component = {Story} />
           <Route path="/VizExamples" component = {VizExamples} />
-          <Route path="/Datasets" component = {Datasets} />
+          <Route path="/Datasets/world-of-coffee" component = {CoffeeWorld} />
           <Route path="/Interactive" component = {Interactive} />
           <Route path="/About" component = {About} />
 

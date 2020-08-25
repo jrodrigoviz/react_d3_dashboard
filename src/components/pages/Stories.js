@@ -4,8 +4,6 @@ import {AppBar,Grid,Card,CardActions, CardMedia,CardContent, Typography} from '@
 import {BrowserRouter, Route, Link as RouterLink} from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 
-import cardPicture from '../static/images/3768.jpg'
-
 
 const useStyles = makeStyles(theme => ({
 
@@ -24,12 +22,12 @@ const useStyles = makeStyles(theme => ({
 
   storyCardTitle:{
     fontSize:'20px',
-    marginLeft:'5px'
+    marginLeft:'0px'
 
   },
   storyCardSubTitle:{
     fontSize:'15px',
-    marginLeft:'5px'
+    marginLeft:'0px'
   }
 
 
@@ -53,8 +51,26 @@ const StoryHome = () => {
 
 
       <div align="center">
+      <h2 align="left" style = {{fontWeight:300}}> Dataset Visualizations</h2>
       <Grid container direction="row" position='relative'  spacing ={1} style = {{padding:'25px'}} justify="flex-start" >
-          {stories.map((d,i)=>(
+          {stories.filter(d => d.type == "viz").map((d,i)=>(
+          <Grid key={d.post_id} item >
+          <Card className = {classes.storyCard} style = {{minWidth:'300px',maxWidth:'300px'}}>
+            <CardMedia component="img" height="140" src={"images/api/images?fileName="+(d.cardPicture===undefined?"generic-image.jpg":d.cardPicture)}/>
+            <CardContent>
+            <Typography gutterBottom variant="h5" component="h2" className = {classes.storyCardTitle} > {d.title}</Typography>
+            <Typography variant="body" component="p"  > {d.subtitle}</Typography>
+            <CardActions>
+              <RouterLink align="right" to={"/Datasets/"+d.pageTitle}  > Read</RouterLink>
+            </CardActions>
+            </CardContent>
+          </Card>
+          </Grid >
+          ))}
+      </Grid>
+      <h2 align="left" style = {{fontWeight:300}}> Data Articles </h2>
+      <Grid container direction="row" position='relative'  spacing ={1} style = {{padding:'25px'}} justify="flex-start" >
+          {stories.filter(d => d.type == "article").map((d,i)=>(
           <Grid key={d.post_id} item >
           <Card className = {classes.storyCard} style = {{minWidth:'300px',maxWidth:'300px'}}>
             <CardMedia component="img" height="140" src={"images/api/images?fileName="+(d.cardPicture===undefined?"generic-image.jpg":d.cardPicture)}/>
