@@ -9,6 +9,7 @@ import VizExamples from './components/pages/VizExamples';
 import Interactive from './components/pages/Interactive';
 import CoffeeWorld from './components/pages/CoffeeWorld';
 import ToolbarNav from './components/components/Toolbar';
+import CoffeeWheel from './components/pages/CoffeeWheel';
 
 
 class App extends Component {
@@ -42,6 +43,8 @@ class App extends Component {
           <Route path="/Stories/Story/:postID" component = {Story} />
           <Route path="/VizExamples" component = {VizExamples} />
           <Route path="/Datasets/world-of-coffee" component = {CoffeeWorld} />
+          <Route path="/Datasets/coffee-wheel" component = {CoffeeWheel} />
+          <Route path="/CoffeeWheel" component = {CoffeeWheel} />
           <Route path="/Interactive" component = {Interactive} />
           <Route path="/About" component = {About} />
 

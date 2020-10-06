@@ -30,7 +30,7 @@ const subheader = " If a picture with worth a thousand words then an effective d
 
 const aboutContent = "This site is created to showcase the power of good data visualizations in telling stories. It is a another medium of communication that adds a layer of context and visual understanding that words cannot.";
 
-const aboutContent2 = "The visaulizations created here use the d3 javascript library, a flexible and fully customizable data visualization tool. More examples of my d3 visuals can be found on my blocks repository"
+const aboutContent2 = "The visaulizations created here use the d3 javascript library, a flexible and fully customizable data visualization tool"
 
 
 const About = () =>{
@@ -47,7 +47,7 @@ const About = () =>{
 
     <p>{aboutContent}</p>
 
-    <p>{aboutContent2} <a href= "https://bl.ocks.org/jrodrigoviz">here</a></p>
+    <p>{aboutContent2}</p>
 
 
     </Paper>
