@@ -7,25 +7,6 @@ import {Paper, Typography, Grid, Button, Divider,Link,List, Select, FormControl,
 import { makeStyles } from '@material-ui/core/styles';
 import dataArr from './coffee-wheel-data';
 
-const useStyles = makeStyles(theme => ({
-
-  lineChart:{
-    "& .line-chart-title":{
-    textAlign:'lefts',
-    fontSize:20
-    },
-    "& .line-chart-subtitle":{
-    textAlign:'',
-    fontSize:15
-    }
-  },
-  root:{
-    textAlign:"left",
-    margin:'1em'
-  }
-
-}));
-
 const circleDataR1 = dataArr.filter(d=>d.layer=="R1");
 const circleDataR2 = dataArr.filter(d=>d.layer=="R2" && d.include == "y" );
 const circleDataR3 = dataArr.filter(d=>d.layer=="R3" && d.include == "y" );
@@ -234,15 +215,16 @@ class CoffeeWheel extends Component {
   };
 
 
+
   render(){
-    return ( <svg ref = {node => this.node = node}
-        width = {
-          1000
-        }
-        height = {
-          1000
-        } >
-        </svg>
+
+    return ( 
+    <div>
+      <Typography style={{textAlign:"left", margin:"1em"}} component="h5" variant = "h5"> Coffee Taster's Flavor Wheel </Typography>
+      <Typography style={{textAlign:"left", margin:"1em"}} component="p" variant = "body"> This visual maps the different flavors found in coffee and helps navigate through the different notes starting from the inner most slices and working out of the rings to get more specific. It was developed by the <a href="https://sca.coffee/research/coffee-tasters-flavor-wheel">SCA</a>  in 1995 and is the largest piece of collaboration from coffee professionals to develop a new way of describing coffees around the world. </Typography>
+      <Typography style={{textAlign:"left", margin:"1em" }} component="p" variant="p">Try using hovering or clicking through through the wheel with your next cup of coffee in hand and see what you can taste!</Typography>
+    <svg ref = {node => this.node = node} width = {1000} height = {1000} ></svg>
+    </div>
     )
   }
 

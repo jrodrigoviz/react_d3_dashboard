@@ -38,7 +38,6 @@ const StoryHome = () => {
     useEffect(()=>{
       const fetchData = async () =>{
         const responseText = await json("/api/stories");
-        console.log(responseText);
         setStories(responseText.sort((a,b)=> b.post_id - a.post_id));
       };
       fetchData();
