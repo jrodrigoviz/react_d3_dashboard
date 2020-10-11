@@ -6,6 +6,8 @@ import {select, event} from 'd3-selection';
 import {Paper, Typography, Grid, Button, Divider,Link,List, Select, FormControl, MenuItem, InputLabel, ListItem} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import dataArr from './coffee-wheel-data';
+import Helmet from 'react-helmet';
+
 
 const circleDataR1 = dataArr.filter(d=>d.layer=="R1");
 const circleDataR2 = dataArr.filter(d=>d.layer=="R2" && d.include == "y" );
@@ -24,7 +26,7 @@ class CoffeeWheel extends Component {
     this.plot = select(node)
     .append("g")
     .attr("id", "shapes")
-    .attr("transform","translate(400,500)")
+    .attr("transform","translate(175,220)")
 
     this.nav =  select(node)
     .append("g")
@@ -32,8 +34,8 @@ class CoffeeWheel extends Component {
 
     this.nav
     .append("text")
-    .attr("x",0)
-    .attr("y",50)
+    .attr("x",10)
+    .attr("y",0)
     .attr("dy","1em")
     .text("Selected Notes: ")
 
@@ -57,8 +59,8 @@ class CoffeeWheel extends Component {
     
     this.pieChartData = pieChartAnglesR1.concat(pieChartAnglesR2).concat(pieChartAnglesR3)
     const pieArc = arc()
-    .innerRadius(d=> d.data.layer=='R1'? 100:d.data.layer=='R2'?175: d.data.layer=='R3'? 275:300)
-    .outerRadius(d=> d.data.layer=='R1'? 175:d.data.layer=='R2'?275: d.data.layer=='R3'? 300:350);
+    .innerRadius(d=> d.data.layer=='R1'? 5:d.data.layer=='R2'?35: d.data.layer=='R3'? 125:200)
+    .outerRadius(d=> d.data.layer=='R1'? 35:d.data.layer=='R2'?125: d.data.layer=='R3'? 135:250);
 
     const slices = this.plot
       .selectAll("slices")
@@ -85,17 +87,17 @@ class CoffeeWheel extends Component {
       .each(function(d,i){
         var centroid = pieArc.centroid(d);
         select(this)
-          .attr("x", d => d.data.layer != "R3" ? centroid[0] :  d.index < 42 ? centroid[0] + 25 : centroid[0] - 25)
+          .attr("x", d => d.data.layer != "R3" ? centroid[0] :  d.index < 42 ? centroid[0] + 10 : centroid[0] - 10)
           .attr("y",centroid[1])
           .attr("font-weight",800)
-          .attr("font-size",10)
+          .attr("font-size",6)
           .attr("fill",d => d.data.layer == "R3" ? d.data.colour : "#FFF")
           .attr("text-anchor", d => d.data.layer != "R3" ? "middle" :  d.index < 42 ? "start" :" end")
           .attr("dy","0.3em")
           .attr("transform",d =>{
             var rotationAngle = 0;
             var sliceMidAngle = (180/Math.PI)*((d.startAngle + d.endAngle)/2)
-            if(d.data.layer == "R3" || (d.data.layer == "R2")){
+            if(d.data.layer == "R3" || (d.data.layer == "R2")|| (d.data.layer == "R1")){
               rotationAngle = -90 + sliceMidAngle;
               if(rotationAngle > 90 ) {
                 rotationAngle = -270 + sliceMidAngle;
@@ -154,32 +156,33 @@ class CoffeeWheel extends Component {
 
     navShapes
       .append("rect")
-      .attr("x",(d,i) => 125+(125*(i)))
+      .attr("x",(d,i) => (100*(i)))
       .attr("width",0)
-      .attr("y",50)
+      .attr("y",20)
       .transition("nav-tx")
       .duration(200)
-      .attr("x",(d,i) => (125*(i+1)))
-      .attr("y",50)
-      .attr("width",125)
+      .attr("x",(d,i) => 10+(100*(i)))
+      .attr("y",20)
+      .attr("width",100)
       .attr("height","1em")
       .attr("fill",d=>d.data.colour)
 
     navShapes
       .append("path")
       .attr("d",triangle)
-      .attr("transform",(d,i) => "translate("+ ((125*(i+1))+4)+",57) rotate(90)")
+      .attr("transform",(d,i) => "translate("+ ((100*(i))+14)+",27) rotate(90)")
       .attr("fill","#000")
       
 
     navShapes
       .append("text")
-      .attr("x",(d,i) => 125*(i+1) + 70)
-      .attr("y",50)
-      .attr("dy","1em")
+      .attr("x",(d,i) => 10+(100*(i)))
+      .attr("y",20)
+      .attr("dy","1.2em")
+      .attr("dx","2em")
       .text(d=>d.data.name )
-      .attr("font-size",14)
-      .attr("text-anchor","middle")
+      .attr("font-size",10)
+      .attr("text-anchor","start")
       .attr("font-weight",800)
       .attr("fill","#fff")
       .style("opacity",0)
@@ -220,10 +223,20 @@ class CoffeeWheel extends Component {
 
     return ( 
     <div>
+      <Helmet>
+        <title>Coffee Wheel</title>
+        <meta name="description" content="An interactive coffee wheel to taste coffee better"/>
+        <meta property="og:url" content="https://matchstickdata.com/Datasets/coffee-wheel"/>
+        <meta property="og:type" content="website"/>
+        <meta property="og:title" content="Matchstick Data"/>
+        <meta property="og:description" content="An interactive coffee wheel to taste coffee better"/>
+        <meta property="og:image" content="https://matchstickdata.com/images/api/images?fileName=coffeeWheel.jpg"/>
+
+      </Helmet>
       <Typography style={{textAlign:"left", margin:"1em"}} component="h5" variant = "h5"> Coffee Taster's Flavor Wheel </Typography>
-      <Typography style={{textAlign:"left", margin:"1em"}} component="p" variant = "body"> This visual maps the different flavors found in coffee and helps navigate through the different notes starting from the inner most slices and working out of the rings to get more specific. It was developed by the <a href="https://sca.coffee/research/coffee-tasters-flavor-wheel">SCA</a>  in 1995 and is the largest piece of collaboration from coffee professionals to develop a new way of describing coffees around the world. </Typography>
+      <Typography style={{textAlign:"left", margin:"1em"}} component="p" variant = "body"> This visual maps the different flavors found in coffee and helps navigate through the different notes starting from the inner most slices and working out of the rings to get more specific. It was developed by the <a href="https://sca.coffee/research/coffee-tasters-flavor-wheel">Specialty Coffee Association</a>  in 1995 and is the largest piece of collaboration from coffee professionals to develop a new way of describing coffees around the world. </Typography>
       <Typography style={{textAlign:"left", margin:"1em" }} component="p" variant="p">Try using hovering or clicking through through the wheel with your next cup of coffee in hand and see what you can taste!</Typography>
-    <svg ref = {node => this.node = node} width = {1000} height = {1000} ></svg>
+    <svg ref = {node => this.node = node} width = {350} height = {1000} ></svg>
     </div>
     )
   }

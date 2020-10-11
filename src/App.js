@@ -11,7 +11,6 @@ import CoffeeWorld from './components/pages/CoffeeWorld';
 import ToolbarNav from './components/components/Toolbar';
 import CoffeeWheel from './components/pages/CoffeeWheel';
 
-
 class App extends Component {
   constructor(props){
     super(props)
@@ -24,6 +23,7 @@ class App extends Component {
 
     //window.addEventListener('resize', this.onResize);
     //this.onResize()
+    
   };
 
   render() {
