@@ -18,15 +18,25 @@ class CoffeeWheel extends Component {
     super(props);
     this.createChart = this.createChart.bind(this);
     this.selectedSlice = [];
+    this.state = {
+      width:350,
+      height:350*1.2
+    };
+
   }
 
   componentDidMount() {
     const node = this.node;
 
+    window.addEventListener('resize',(e)=>{
+      console.log(window.innerWidth);
+      this.setState({width:window.innerWidth*0.8,height:window.innerWidth*0.8*1.2})
+    });
+
     this.plot = select(node)
     .append("g")
     .attr("id", "shapes")
-    .attr("transform","translate(175,220)")
+    .attr("transform","translate("+this.state.width/2+","+this.state.height/2+")")
 
     this.nav =  select(node)
     .append("g")
@@ -39,38 +49,52 @@ class CoffeeWheel extends Component {
     .attr("dy","1em")
     .text("Selected Notes: ")
 
+    const pieChartAnglesR1 = pie()
+    .sort(null)
+    .value(d=> d.value)(circleDataR1);
+
+    const pieChartAnglesR2 = pie()
+    .sort(null)
+    .value(d=> d.value)(circleDataR2); 
+    
+    const pieChartAnglesR3 = pie()
+    .sort(null)
+    .value(d=> d.value)(circleDataR3);   
+  
+    this.pieChartData = pieChartAnglesR1.concat(pieChartAnglesR2).concat(pieChartAnglesR3)
+
+    this.createChart();
+
+  }
+
+  componentDidUpdate(){  
+
     this.createChart();
 
   }
 
   createChart(){
 
-    const pieChartAnglesR1 = pie()
-      .sort(null)
-      .value(d=> d.value)(circleDataR1);
-
-    const pieChartAnglesR2 = pie()
-      .sort(null)
-      .value(d=> d.value)(circleDataR2); 
-      
-    const pieChartAnglesR3 = pie()
-      .sort(null)
-      .value(d=> d.value)(circleDataR3);   
-    
-    this.pieChartData = pieChartAnglesR1.concat(pieChartAnglesR2).concat(pieChartAnglesR3)
-    const pieArc = arc()
-    .innerRadius(d=> d.data.layer=='R1'? 5:d.data.layer=='R2'?35: d.data.layer=='R3'? 125:200)
-    .outerRadius(d=> d.data.layer=='R1'? 35:d.data.layer=='R2'?125: d.data.layer=='R3'? 135:250);
+    this.pieArc = arc()
+    .innerRadius(d=> d.data.layer=='R1'? 0.14*this.state.width:d.data.layer=='R2'?0.20*this.state.width: d.data.layer=='R3'? 0.36*this.state.width:200)
+    .outerRadius(d=> d.data.layer=='R1'? 0.20*this.state.width:d.data.layer=='R2'?0.36*this.state.width: d.data.layer=='R3'? 0.39*this.state.width:250);
 
     const slices = this.plot
-      .selectAll("slices")
-      .data(this.pieChartData)
-      .enter();
+      .selectAll(".pieSliceGroup")
+      .data(this.pieChartData,(d)=>d.data.name+d.data.layer+d.startAngle)
+      .enter()
+      .append("g")
+      .attr("class","pieSliceGroup")
+      .attr("id",(d)=>d.data.name+d.data.layer);
 
-    slices
+    this.plot
+      .selectAll(".pieSlice")
+      .attr("d",this.pieArc)
+
+    slices     
       .append("path")
       .attr("class","pieSlice")
-      .attr("d",pieArc)
+      .attr("d",this.pieArc)
       .attr("stroke","#fff")
       .attr("fill",d => d.data.layer == "R4" ?"#FFF" : d.data.colour)
       .on("mouseover",(d,i,nodes)=> {
@@ -82,35 +106,58 @@ class CoffeeWheel extends Component {
         this.handleHoverOut();
       });
 
+    this.plot
+      .selectAll(".pieSliceText")
+      .attr("x", d => d.data.layer != "R3" ? this.pieArc.centroid(d)[0] :  d.index < 42 ? this.pieArc.centroid(d)[0] + 0.03*this.state.width : this.pieArc.centroid(d)[0] - 0.03*this.state.width)
+      .attr("y",(d)=>this.pieArc.centroid(d)[1])
+      .attr("font-size",0.017*this.state.width)
+      .attr("transform",d =>{
+        var rotationAngle = 0;
+        var sliceMidAngle = (180/Math.PI)*((d.startAngle + d.endAngle)/2)
+        if(d.data.layer == "R3" || (d.data.layer == "R2")|| (d.data.layer == "R1")){
+          rotationAngle = -90 + sliceMidAngle;
+          if(rotationAngle > 90 ) {
+            rotationAngle = -270 + sliceMidAngle;
+          }
+        }
+        return "rotate("+rotationAngle + ","+ this.pieArc.centroid(d)[0] +" " + this.pieArc.centroid(d)[1]  +")" 
+      }
+      );
+
     slices
       .append("text")
-      .each(function(d,i){
-        var centroid = pieArc.centroid(d);
-        select(this)
-          .attr("x", d => d.data.layer != "R3" ? centroid[0] :  d.index < 42 ? centroid[0] + 10 : centroid[0] - 10)
-          .attr("y",centroid[1])
-          .attr("font-weight",800)
-          .attr("font-size",6)
-          .attr("fill",d => d.data.layer == "R3" ? d.data.colour : "#FFF")
-          .attr("text-anchor", d => d.data.layer != "R3" ? "middle" :  d.index < 42 ? "start" :" end")
-          .attr("dy","0.3em")
-          .attr("transform",d =>{
-            var rotationAngle = 0;
-            var sliceMidAngle = (180/Math.PI)*((d.startAngle + d.endAngle)/2)
-            if(d.data.layer == "R3" || (d.data.layer == "R2")|| (d.data.layer == "R1")){
-              rotationAngle = -90 + sliceMidAngle;
-              if(rotationAngle > 90 ) {
-                rotationAngle = -270 + sliceMidAngle;
-              }
-            }
-            return "rotate("+rotationAngle + ","+ centroid[0] +" " + centroid[1]  +")" 
+      .attr("class","pieSliceText")
+      .attr("x", d => d.data.layer != "R3" ? this.pieArc.centroid(d)[0] :  d.index < 42 ? this.pieArc.centroid(d)[0] + 10 : this.pieArc.centroid(d)[0] - 10)
+      .attr("y",(d)=>this.pieArc.centroid(d)[1])
+      .attr("font-weight",800)
+      .attr("font-size",0.017*this.state.width)
+      .attr("fill",d => d.data.layer == "R3" ? d.data.colour : "#FFF")
+      .attr("text-anchor", d => d.data.layer != "R3" ? "middle" :  d.index < 42 ? "start" :" end")
+      .attr("dy","0.3em")
+      .attr("transform",d =>{
+        var rotationAngle = 0;
+        var sliceMidAngle = (180/Math.PI)*((d.startAngle + d.endAngle)/2)
+        if(d.data.layer == "R3" || (d.data.layer == "R2")|| (d.data.layer == "R1")){
+          rotationAngle = -90 + sliceMidAngle;
+          if(rotationAngle > 90 ) {
+            rotationAngle = -270 + sliceMidAngle;
           }
-          ) 
-          .text(d=>d.data.name == "BLANK" ? null:d.data.name)
-      });
+        }
+        return "rotate("+rotationAngle + ","+ this.pieArc.centroid(d)[0] +" " + this.pieArc.centroid(d)[1]  +")" 
+      }
+      ) 
+      .text(d=>d.data.name == "BLANK" ? null:d.data.name)
 
+      select(this.node)
+      .select("g")
+      .attr("transform","translate("+this.state.width/2+","+this.state.height/2+")")
 
   };
+
+  componentWillUnmount(){
+    window.removeEventListener("resize",(e)=>this.setState({width:window.innerWidth,height:window.innerWidth*1.2}))
+
+  }
 
   handleHoverOver(){
 
@@ -236,7 +283,7 @@ class CoffeeWheel extends Component {
       <Typography style={{textAlign:"left", margin:"1em"}} component="h5" variant = "h5"> Coffee Taster's Flavor Wheel </Typography>
       <Typography style={{textAlign:"left", margin:"1em"}} component="p" variant = "body"> This visual maps the different flavors found in coffee and helps navigate through the different notes starting from the inner most slices and working out of the rings to get more specific. It was developed by the <a href="https://sca.coffee/research/coffee-tasters-flavor-wheel">Specialty Coffee Association</a>  in 1995 and is the largest piece of collaboration from coffee professionals to develop a new way of describing coffees around the world. </Typography>
       <Typography style={{textAlign:"left", margin:"1em" }} component="p" variant="p">Try using hovering or clicking through through the wheel with your next cup of coffee in hand and see what you can taste!</Typography>
-    <svg ref = {node => this.node = node} width = {350} height = {1000} ></svg>
+    <svg ref = {node => this.node = node} width = {this.state.width} height = {this.state.height} ></svg>
     </div>
     )
   }
