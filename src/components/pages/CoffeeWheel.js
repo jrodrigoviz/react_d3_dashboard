@@ -19,8 +19,8 @@ class CoffeeWheel extends Component {
     this.createChart = this.createChart.bind(this);
     this.selectedSlice = [];
     this.state = {
-      width:350,
-      height:350*1.2
+      width:Math.min(1000,window.innerWidth*0.8),
+      height:Math.min(1000*1.2,window.innerWidth*1.2)
     };
 
   }
@@ -29,14 +29,14 @@ class CoffeeWheel extends Component {
     const node = this.node;
 
     window.addEventListener('resize',(e)=>{
-      console.log(window.innerWidth);
-      this.setState({width:window.innerWidth*0.8,height:window.innerWidth*0.8*1.2})
+
+      this.setState({width:Math.min(1000,window.innerWidth*0.8),height:Math.min(1000*1.2,window.innerWidth*1.2)})
     });
 
     this.plot = select(node)
     .append("g")
     .attr("id", "shapes")
-    .attr("transform","translate("+this.state.width/2+","+this.state.height/2+")")
+    .attr("transform","translate("+this.state.width/2+","+this.state.height/2.25+")")
 
     this.nav =  select(node)
     .append("g")
@@ -127,10 +127,10 @@ class CoffeeWheel extends Component {
     slices
       .append("text")
       .attr("class","pieSliceText")
-      .attr("x", d => d.data.layer != "R3" ? this.pieArc.centroid(d)[0] :  d.index < 42 ? this.pieArc.centroid(d)[0] + 10 : this.pieArc.centroid(d)[0] - 10)
+      .attr("x", d => d.data.layer != "R3" ? this.pieArc.centroid(d)[0] :  d.index < 42 ? this.pieArc.centroid(d)[0] + 0.03*this.state.width : this.pieArc.centroid(d)[0] - 0.03*this.state.width)
       .attr("y",(d)=>this.pieArc.centroid(d)[1])
       .attr("font-weight",800)
-      .attr("font-size",0.017*this.state.width)
+      .attr("font-size",0.015*this.state.width)
       .attr("fill",d => d.data.layer == "R3" ? d.data.colour : "#FFF")
       .attr("text-anchor", d => d.data.layer != "R3" ? "middle" :  d.index < 42 ? "start" :" end")
       .attr("dy","0.3em")
@@ -150,7 +150,7 @@ class CoffeeWheel extends Component {
 
       select(this.node)
       .select("g")
-      .attr("transform","translate("+this.state.width/2+","+this.state.height/2+")")
+      .attr("transform","translate("+this.state.width/2+","+this.state.height/2.25+")")
 
   };
 

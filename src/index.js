@@ -4,8 +4,10 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import ReactGA from 'react-ga';
+import TagManager from 'react-gtm-module'
 
 ReactGA.initialize('UA-127843206-2');
+TagManager.initialize({gtmId:'GTM-N998LQS'})
 ReactGA.pageview(window.location.pathname);
 
 ReactDOM.render(<App />, document.getElementById('root'));

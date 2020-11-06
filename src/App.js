@@ -10,6 +10,7 @@ import Interactive from './components/pages/Interactive';
 import CoffeeWorld from './components/pages/CoffeeWorld';
 import ToolbarNav from './components/components/Toolbar';
 import CoffeeWheel from './components/pages/CoffeeWheel';
+import Chooser from './components/pages/Chooser';
 
 class App extends Component {
   constructor(props){
@@ -44,6 +45,7 @@ class App extends Component {
           <Route path="/VizExamples" component = {VizExamples} />
           <Route path="/Datasets/world-of-coffee" component = {CoffeeWorld} />
           <Route path="/Datasets/coffee-wheel" component = {CoffeeWheel} />
+          <Route path="/Chooser" component = {Chooser} />
           <Route path="/CoffeeWheel" component = {CoffeeWheel} />
           <Route path="/Interactive" component = {Interactive} />
           <Route path="/About" component = {About} />
