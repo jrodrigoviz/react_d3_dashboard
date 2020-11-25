@@ -39,6 +39,17 @@ class BarChart extends Component {
 
   }
 
+  shouldComponentUpdate(nextProps){
+    let update = false;
+    if(this.props.data.length>0 && nextProps.data.length>0){
+      if(this.props.data[0].value != nextProps.data[0].value){
+        update = true
+      }
+    }
+    
+    return update
+  }
+
   componentDidUpdate() {
     this.reshapeData();
     this.createScales();
@@ -68,7 +79,7 @@ class BarChart extends Component {
 
   createScales() {
 
-    this.dataMax = max(this.seriesDataRollup.map((d) => d.value)) * 1.2;
+    this.dataMax = (typeof this.props.dataMax == 'undefined'? max(this.seriesDataRollup.map((d) => d.value)) * 1.2:this.props.dataMax);
 
     if (this.props.orientation == "vertical") {
 
@@ -217,8 +228,6 @@ class BarChart extends Component {
 
       rect
         .attr("x", (d) => this.xScale(d.key) + 1)
-        .attr("y", d => this.yScale(0))
-        .attr("height", d => this.props.size[1] - this.yScale(0) - 2 * this.props.padding)
         .attr("width", this.xScale.bandwidth())
         .transition()
         .duration(this.props.speed)

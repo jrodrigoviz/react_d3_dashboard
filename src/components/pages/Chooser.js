@@ -1,11 +1,7 @@
 import React, {useEffect,useState,Component} from 'react';
-import {json} from 'd3-fetch';
-import {sum} from 'd3-array';
 import io from 'socket.io-client';
+import BubbleChart from '../data_viz/BubbleChart';
 import BarChart from '../data_viz/BarChart';
-import KPICard from '../data_viz/KPICard';
-import RadarChart from '../data_viz/RadarChart';
-import DataTable from '../data_viz/DataTable';
 import {AppBar,Button,Grid,Card,CardMedia,CardContent, Drawer,TextField, List, ListItem, ListItemIcon,ListItemText, Typography} from '@material-ui/core'
 import { set } from 'react-ga';
 
@@ -24,6 +20,8 @@ const Chooser = (props) =>{
     const [data,setData] = useState({roomID:-1,name:0,socket:0,isOpen:0, message:"",create:0});
     const [chatHistory,setHistory] = useState([]);
     const [roomData,setRoomData] = useState([]);
+    const [initialNodes,setInitialNodes] = useState([]);
+    const [barChartData,setBarChartData] = useState([]);
 
     const startSession = () => {
 
@@ -33,7 +31,14 @@ const Chooser = (props) =>{
         const socket = io('http://localhost:3002/',{query:{roomID:roomID}});
         
         socket.on('connect',() => {
-            socket.emit('room',{name:name,room:roomID,create:1},(d)=>setHistory((chatHistory) => [d, ...chatHistory]))
+            socket.emit('room',{name:name,room:roomID,create:1},(d)=>{
+                setHistory((chatHistory) => [d.room, ...chatHistory]);
+                setInitialNodes(d.initialNodes);    
+            })
+        });
+
+        socket.on('disconnect', () => {
+            socket.emit('room-disconnect',{name:name,room:roomID},()=>console.log("disconnected"))
         });
 
         socket.on('server-message', (d) => {
@@ -41,7 +46,7 @@ const Chooser = (props) =>{
         })
     
         socket.on('server-room-data', (d) => {
-            setRoomData((roomData) => [d, ...roomData])
+            setRoomData((roomData) => d)
         });
 
         setData({roomID:roomID,name:name, socket:socket,isOpen:1,message:data.message,dataInput:data.dataInput})
@@ -51,10 +56,17 @@ const Chooser = (props) =>{
     };
 
      const closeSession = () => {
-        if( data.socket != 0 ){ data.socket.close()};
+        if( data.socket != 0 ){ 
+            data.socket.emit('room-disconnect',{name:data.name,room:data.room},()=>{
+                console.log("disconnected");
+                data.socket.close()
+            })
+        };
     
         setData({roomID:"Click to generate",name:0,socket:0,isOpen:0,message:data.message})
         setHistory([]);
+        setRoomData([]);
+        setBarChartData([]);
     };
 
     const joinSession = () => {
@@ -62,15 +74,22 @@ const Chooser = (props) =>{
         const name = makeID();
         const socket = io('http://localhost:3002/')
         
-        socket.on('connect',() => socket.emit('room',{name:name,room:data.roomID,create:0}));
+        socket.on('connect',() => socket.emit('room',{name:name,room:data.roomID,create:0},
+            (d) => setRoomData(d))
+        );
+
+        socket.on('disconnect', ()=>socket.emit('room-disconnect',{name:name,room:data.roomID}));
+
 
         socket.on('server-message', (d) => {
             setHistory((chatHistory) => [d, ...chatHistory]);
         })
 
         socket.on('server-room-data', (d) => {
-            setRoomData((roomData) => [d, ...roomData])
+            console.log("server sent data");
+            setRoomData((roomData) => d)
         });
+
 
         setData({roomID:data.roomID,name:name,socket:socket,isOpen:1,message:data.message,dataInput:data.dataInput});
         }
@@ -104,13 +123,28 @@ const Chooser = (props) =>{
     
     const enterData =  (e) =>{
 
-        if(e.keyCode == 13){
-        console.log(data.dataInput);
-
         data.socket.emit('data',{dataField:data.dataInput});
 
-        }
     };    
+
+    const retrieveBubbleChartData = (d) => {
+
+        const arr = [];
+        const arrEqual = true;
+        
+        const keysArr = Object.keys(d);
+
+        keysArr.sort().forEach((e,i)=>{
+            const val = d[e];
+            const series = e;
+            const key = i;
+            const element = {key:i,series:e,value:val};
+            arr.push(element)
+        })
+
+        setBarChartData(arr)
+        
+    }; 
 
     return (
 
@@ -126,22 +160,25 @@ const Chooser = (props) =>{
                 <Button onClick = {joinSession}>Join</Button>
                 <Button onClick = {closeSession}>Close</Button>
         </Grid>
+        {data.isOpen == 1 ? (
+        <Grid container>
         <Grid container>
             <TextField value ={data.message} id='message-input' onKeyDown={enterMessage} onChange={handleTextChange} ></TextField>
             <Button onClick = {sendMessage}>Send</Button>
         </Grid>
+
         <Grid container>
             <TextField value ={data.dataField} id='data-input' onKeyDown={enterData} onChange={handleTextChange} ></TextField>
-            <Button >Send Data</Button>
+            <Button onClick={enterData}>Send Data</Button>
+        </Grid>
+        </Grid>
+        ):(null)
+        } 
+        <Grid container>
+            <BubbleChart callbackData = {retrieveBubbleChartData} size={[500,500]} bg="#f7f7f7" data={roomData} initialNodes ={initialNodes}/>
         </Grid>
         <Grid container>
-            <svg style = {{background:'#a7a7a7'}} width = {300} height = {300}>
-            {
-            roomData.filter((d,i) => i<=100).map((d,i) => (
-                <circle r={5} fill={'#'+Math.floor(Math.random()*16777215).toString(16)} cx = {i*Math.random()*100} cy = {i*Math.random()*100}></circle>
-            ))
-            }   
-            </svg>
+            <BarChart size={[500,200]} bg="#f7f7f7" padding={50} speed={500} xAdjust ={0} data={barChartData} xAdjust={0} keysort={0} dataMax={100} orientation="vertical" />
         </Grid>
 
         <Grid container>
