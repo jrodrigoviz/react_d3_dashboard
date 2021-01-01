@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 // Does not contian d3 prefix when importing classes
 import {scaleLinear, scaleBand, scaleOrdinal} from 'd3-scale';
-import {range, max, group, sum, rollups} from 'd3-array';
+import {range, max, group, sum, rollups, min} from 'd3-array';
 import {keys, values} from 'd3-collection';
 import {select, event as d3event} from 'd3-selection';
 import {axisBottom, axisLeft} from 'd3-axis'
@@ -42,11 +42,15 @@ class BarChart extends Component {
   shouldComponentUpdate(nextProps){
     let update = false;
     if(this.props.data.length>0 && nextProps.data.length>0){
-      if(this.props.data[0].value != nextProps.data[0].value){
-        update = true
+      let minLen = Math.min(this.props.data.length,nextProps.data.length);
+      for(var i =0; i<minLen; i++){
+        if(this.props.data[i].value != nextProps.data[0].value){
+          update = true;
+          break;
+        }
       }
     }
-    
+
     return update
   }
 

@@ -22,6 +22,7 @@ const Chooser = (props) =>{
     const [roomData,setRoomData] = useState([]);
     const [initialNodes,setInitialNodes] = useState([]);
     const [barChartData,setBarChartData] = useState([]);
+    const [chartBuckets,setChartBuckets] = useState([]);
 
     const startSession = () => {
 
@@ -127,6 +128,12 @@ const Chooser = (props) =>{
 
     };    
 
+    const addBucket =  (e) =>{
+
+        data.socket.emit('add-bucket',[],(d)=> {setChartBuckets(d)});
+
+    };    
+
     const retrieveBubbleChartData = (d) => {
 
         const arr = [];
@@ -169,13 +176,14 @@ const Chooser = (props) =>{
 
         <Grid container>
             <TextField value ={data.dataField} id='data-input' onKeyDown={enterData} onChange={handleTextChange} ></TextField>
-            <Button onClick={enterData}>Send Data</Button>
+            <Button onClick={addBucket}>Add Bucket</Button>
+            <Button onClick={enterData}>Run Simulation</Button>
         </Grid>
         </Grid>
         ):(null)
         } 
         <Grid container>
-            <BubbleChart callbackData = {retrieveBubbleChartData} size={[500,500]} bg="#f7f7f7" data={roomData} initialNodes ={initialNodes}/>
+            <BubbleChart callbackData = {retrieveBubbleChartData} size={[500,500]} bg="#f7f7f7" data={roomData} initialNodes ={initialNodes} buckets={chartBuckets}/>
         </Grid>
         <Grid container>
             <BarChart size={[500,200]} bg="#f7f7f7" padding={50} speed={500} xAdjust ={0} data={barChartData} xAdjust={0} keysort={0} dataMax={100} orientation="vertical" />
