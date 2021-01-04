@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import {scaleLinear, scaleBand, scaleOrdinal} from 'd3-scale';
 import {range, max, group, sum, rollups, min} from 'd3-array';
 import {keys, values} from 'd3-collection';
-import {select, event as d3event} from 'd3-selection';
+import {select, event as d3event, selectAll} from 'd3-selection';
 import {axisBottom, axisLeft} from 'd3-axis'
 import {transition, interrupt} from 'd3-transition'
 
@@ -14,7 +14,10 @@ class BarChart extends Component {
   }
 
   static defaultProps = {
-    orientation: "horizontal"
+    orientation: "horizontal",
+    yAxisLabelLocation:'left',
+    yAxisShow:true,
+    xAxisShow:true,
   };
 
 
@@ -25,6 +28,11 @@ class BarChart extends Component {
       .append("g")
       .attr("id", "shapes")
       .attr("transform", "translate(" + (this.props.xAdjust+this.props.padding) + ","+this.props.padding + ")");
+    
+    this.plot
+      .append("g")
+      .attr("id","chart-rects")
+    
     this.reshapeData();
     this.createScales();
     this.createAxis();
@@ -55,6 +63,7 @@ class BarChart extends Component {
   }
 
   componentDidUpdate() {
+
     this.reshapeData();
     this.createScales();
     this.updateAxis();
@@ -165,32 +174,43 @@ class BarChart extends Component {
 
   createAxis() {
 
-    this.plot
-      .append('g')
-      .attr("id", "x-axisGroup")
-      .attr("class", "x-axis")
-      .attr("transform", "translate(" + "0" + "," + (this.props.size[1] - 2 * this.props.padding) + ")");
+    if(this.props.xAxisShow == true){
 
-    this.plot
-      .select(".x-axis")
-      .transition()
-      .duration(this.props.speed)
-      .call(this.xAxis)
+      this.plot
+        .append('g')
+        .attr("id", "x-axisGroup")
+        .attr("class", "x-axis")
+        .attr("transform", "translate(" + "0" + "," + (this.props.size[1] - 2 * this.props.padding) + ")");
 
+      this.plot
+        .select(".x-axis")
+        .transition()
+        .duration(this.props.speed)
+        .call(this.xAxis)
 
-    this.plot.append("g")
-      .attr("id", "y-axisGroup")
-      .attr("class", "y-axis")
-      .attr("transform", "translate(0,0)");
+    }
+    
+    if(this.props.yAxisShow == true){
 
-    this.plot.select(".y-axis")
-      .transition()
-      .duration(this.props.speed)
-      .call(this.yAxis)
+      this.plot.append("g")
+        .attr("id", "y-axisGroup")
+        .attr("class", "y-axis")
+        .attr("transform", "translate(0,0)");
 
-  }
+      this.plot.select(".y-axis")
+        .transition()
+        .duration(this.props.speed)
+        .call(this.yAxis)
 
-  updateAxis() {
+      this.plot.select('#y-axisGroup')
+        .attr('text-anchor', this.props.yAxisLabelLocation == 'right' ? 'start':'end');
+    }
+    
+  };
+
+updateAxis() {
+
+    if(this.props.xAxisShow == true){
 
     this.plot
       .select(".x-axis")
@@ -201,25 +221,34 @@ class BarChart extends Component {
       .transition()
       .duration(this.props.speed)
       .call(this.xAxis);
+    
+    }
 
+
+    if(this.props.yAxisShow == true){
+    
     this.plot
       .select(".y-axis")
       .attr("transform", "translate(0,0)");
+      
     this.plot.select(".y-axis")
       .transition()
       .duration(this.props.speed)
-      .call(this.yAxis);
-
+      .call(this.yAxis)
+      .selectAll('.tick text')
+      .attr('dx',(d)=> this.props.yAxisLabelLocation == 'right' ? '13':0 );
+      
+    }
 
   }
 
 
   createBarChart() {
-
+    
     const rect = this.plot
+      .select("#chart-rects")
       .selectAll("rect")
       .data(this.seriesDataRollup, (d) => d.key + d.series);
-
 
     rect
       .exit()

@@ -2,7 +2,7 @@ import React, {Component,useEffect,useState} from 'react';
 import {json,image} from 'd3-fetch';
 import {AppBar,Grid,Card,CardActions,Link , CardMedia,CardContent, Typography} from '@material-ui/core'
 import {BrowserRouter, Route, Link as RouterLink} from 'react-router-dom';
-import { makeStyles } from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/core/styles';
 
 
 const useStyles = makeStyles(theme => ({

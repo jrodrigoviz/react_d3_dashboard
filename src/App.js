@@ -11,6 +11,8 @@ import CoffeeWorld from './components/pages/CoffeeWorld';
 import ToolbarNav from './components/components/Toolbar';
 import CoffeeWheel from './components/pages/CoffeeWheel';
 import Chooser from './components/pages/Chooser';
+import NewsDash from './components/pages/NewsDash.jsx';
+
 
 class App extends Component {
   constructor(props){
@@ -46,6 +48,7 @@ class App extends Component {
           <Route path="/Datasets/world-of-coffee" component = {CoffeeWorld} />
           <Route path="/Datasets/coffee-wheel" component = {CoffeeWheel} />
           <Route path="/Chooser" component = {Chooser} />
+          <Route path="/Datasets/nyt-dash" component = {NewsDash} />
           <Route path="/CoffeeWheel" component = {CoffeeWheel} />
           <Route path="/Interactive" component = {Interactive} />
           <Route path="/About" component = {About} />
