@@ -31,17 +31,16 @@ const useStyles = makeStyles(theme => ({
             },
         "& .square-chart-tooltip":{
             textAlign:'left',
-            fontSize:8,
+            fontSize:10,
             overflowWrap:'break-word'
             }
-        
     }
   
   }));
 
 const Dash = (props) =>{
 
-    const [data,setData] = useState({desCount:[{series:0,value:0}],perCount:[{series:0,value:0}],orgCount:[{series:0,value:0}], all:[]});
+    const [data,setData] = useState({dataMax:0,desCount:[{series:0,value:0}],perCount:[{series:0,value:0}],orgCount:[{series:0,value:0}], all:[]});
     const [windowData, setWindowData] = useState({width:Math.min(window.innerWidth*0.8,1024*0.8),height:600,lastRefresh:''})
     const classes = useStyles();
 
@@ -71,16 +70,18 @@ const Dash = (props) =>{
         const fetchData = async () => {
 
             const response = await json("/api/nyt/ts");
+            response.dataMax = response.desCount[0].value
             setData(response);
             
             }
 
         fetchData();
+        setWindowData((prevState) => ({...prevState,lastRefresh:new Date().toLocaleTimeString()}))
         
         const interval = setInterval(()=>{
             fetchData()
             setWindowData((prevState) => ({...prevState,lastRefresh:new Date().toLocaleTimeString()}))
-        },5000);
+        },30000);
 
         return () => clearInterval(interval)
 
@@ -98,9 +99,9 @@ const Dash = (props) =>{
             </Grid>
             <Grid item>
                 <Grid container direction='column'>
-                <BarChart data={data.desCount.filter((d,i)=>i<=5)} size={[windowData.width/1.9,175]} padding={35} speed={500} xAdjust ={0} dataMax={6} xAxisShow={false} title={"Top Ideas"} yAxisLabelLocation={'right'}></BarChart>
-                <BarChart data={data.orgCount.filter((d,i)=>i<=5)} size={[windowData.width/1.9,175]} padding={35} speed={500} xAdjust ={0} dataMax={6} xAxisShow={false} title={"Top Organizations"} yAxisLabelLocation={'right'}></BarChart>
-                <BarChart data={data.perCount.filter((d,i)=>i<=5)} size={[windowData.width/1.9,175]} padding={35} speed={500} xAdjust ={0} dataMax={6} xAxisShow={false} title={"Top People"} yAxisLabelLocation={'right'}></BarChart>
+                <BarChart data={data.desCount.filter((d,i)=>i<=5)} size={[windowData.width/1.9,175]} padding={35} speed={500} xAdjust ={0} dataMax={data.dataMax} xAxisShow={false} title={"Top Ideas"} yAxisLabelLocation={'right'}></BarChart>
+                <BarChart data={data.orgCount.filter((d,i)=>i<=5)} size={[windowData.width/1.9,175]} padding={35} speed={500} xAdjust ={0} dataMax={data.dataMax} xAxisShow={false} title={"Top Organizations"} yAxisLabelLocation={'right'}></BarChart>
+                <BarChart data={data.perCount.filter((d,i)=>i<=5)} size={[windowData.width/1.9,175]} padding={35} speed={500} xAdjust ={0} dataMax={data.dataMax} xAxisShow={false} title={"Top People"} yAxisLabelLocation={'right'}></BarChart>
                 </Grid>
             </Grid>
         </Grid>

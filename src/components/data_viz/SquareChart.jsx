@@ -85,8 +85,6 @@ const SquareChart = (props) =>{
 
         squares
             .enter()
-            //.append("a")
-            //.attr("href",(d)=>d.url)
             .append(props.tag)
             .attr('x',(d,i) => xScale((i) % dims.rows))
             .attr('href',(d)=>d.thumbnail)
@@ -108,9 +106,9 @@ const SquareChart = (props) =>{
         // select all the images in the group and filter out the selected index to keep opacity at 1
         selectAll(nodes)
             .filter((j,k) => k!=i)
-            .transition('square-chart-select-fadeout')
+            .transition('square-chart-select')
             .duration(500)
-            .style("opacity","0.5");
+            .style("opacity","0.25");
 
         // get the x and y location of the current selection
 
@@ -121,10 +119,7 @@ const SquareChart = (props) =>{
         const selectY = parseInt(select(nodes[i])
             .attr('y'))
 
-        const selectTitle = d.title
-
-        console.log(parseInt(selectX), props.size[0],parseInt(selectY));
-        console.log("translate("+(selectX+ (selectX+100 > props.size[0]?-75:75))+","+(selectY+75));
+        const selectTitle = d.title;
 
         select("#square-chart-holder")
             .append("g")
@@ -157,8 +152,8 @@ const SquareChart = (props) =>{
 
         select("#square-chart-holder")
             .selectAll("image")
-            .transition()
-            .duration(500)
+            .transition('square-chart-select')
+            .duration(200)
             .style("opacity","1");
 
         select(".square-chart-tooltip")
