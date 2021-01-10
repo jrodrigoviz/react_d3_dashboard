@@ -3,6 +3,7 @@ import {makeStyles} from '@material-ui/core/styles';
 import {json} from 'd3-fetch';
 import {Grid,Typography} from '@material-ui/core';
 import BarChart from '../data_viz/BarChart';
+import LineChart from '../data_viz/LineChart';
 import SquareChart from '../data_viz/SquareChart.jsx';
 
 //debounce the resize events to minimize resizing times. Once per 0.1s
@@ -28,11 +29,18 @@ const useStyles = makeStyles(theme => ({
         "& .square-chart-title":{
             textAlign:'left',
             fontSize:14
-            },
-        "& .square-chart-tooltip":{
+            }, 
+        "& .line-chart-title":{
+            textAlign:'left',
+            fontSize:14
+            }, 
+        "& .square-chart-tooltip-div":{
             textAlign:'left',
             fontSize:10,
-            overflowWrap:'break-word'
+            padding:3,
+            overflowWrap:'break-word',
+            background:'#f7f7f7',
+            border:'1px solid #ababab'
             }
     }
   
@@ -40,10 +48,10 @@ const useStyles = makeStyles(theme => ({
 
 const Dash = (props) =>{
 
-    const [data,setData] = useState({dataMax:0,desCount:[{series:0,value:0}],perCount:[{series:0,value:0}],orgCount:[{series:0,value:0}], all:[]});
+    const [data,setData] = useState({dataMax:0,desCount:[{series:0,value:0}],perCount:[{series:0,value:0}],orgCount:[{series:0,value:0}], all:[], minutes:[{mins:["1"]}]});
     const [windowData, setWindowData] = useState({width:Math.min(window.innerWidth*0.8,1024*0.8),height:600,lastRefresh:''})
     const classes = useStyles();
-
+   
     useEffect(()=>{
         var width = window.innerWidth;
   
@@ -70,9 +78,11 @@ const Dash = (props) =>{
         const fetchData = async () => {
 
             const response = await json("/api/nyt/ts");
-            response.dataMax = response.desCount[0].value
+            response.dataMax = response.desCount[0].value;
+            response.minutes[0].mins.forEach(d=> d.key = new Date(d.key));
+
             setData(response);
-            
+
             }
 
         fetchData();
@@ -88,20 +98,24 @@ const Dash = (props) =>{
     },[]);
 
     return (
-        <div className={classes.root}>
+      <div className={classes.root}>
         <Typography style={{textAlign:"left", margin:"1em"}} component="h5" variant = "h5"> NYT Dashboard </Typography>
         <Typography style={{textAlign:"left", margin:"1em"}} component="p" variant = "body"> This real-time visual summarizes the top stories on the front page of the New York Times. </Typography>
         <Typography id = 'last-refresh-timer' style={{textAlign:"left", margin:"1em"}} component="p" variant = "body"> Last Refreshed at: {windowData.lastRefresh}  </Typography>
-
         <Grid container direction = 'row' justify= 'space-evenly' wrap='nowrap'>
+          <Grid container direction = 'column'>
             <Grid item>
                 <SquareChart data={data.all} size={[windowData.width/1.9,600]} padding={30} title='Last 25 Articles'></SquareChart>
             </Grid>
             <Grid item>
+            </Grid>
+          </Grid>
+            <Grid item>
                 <Grid container direction='column'>
-                <BarChart data={data.desCount.filter((d,i)=>i<=5)} size={[windowData.width/1.9,175]} padding={35} speed={500} xAdjust ={0} dataMax={data.dataMax} xAxisShow={false} title={"Top Ideas"} yAxisLabelLocation={'right'}></BarChart>
-                <BarChart data={data.orgCount.filter((d,i)=>i<=5)} size={[windowData.width/1.9,175]} padding={35} speed={500} xAdjust ={0} dataMax={data.dataMax} xAxisShow={false} title={"Top Organizations"} yAxisLabelLocation={'right'}></BarChart>
-                <BarChart data={data.perCount.filter((d,i)=>i<=5)} size={[windowData.width/1.9,175]} padding={35} speed={500} xAdjust ={0} dataMax={data.dataMax} xAxisShow={false} title={"Top People"} yAxisLabelLocation={'right'}></BarChart>
+                  <LineChart data={data.minutes[0].mins} size={[windowData.width/1.9,100]} padding={35} showLegend={false} showYAxis={false} title='Published Timeline'></LineChart>
+                  <BarChart data={data.desCount.filter((d,i)=>i<=5)} size={[windowData.width/1.9,175]} padding={35} speed={500} xAdjust ={0} dataMax={data.dataMax} xAxisShow={false} title={"Top Stories"} yAxisLabelLocation={'right'}></BarChart>
+                  <BarChart data={data.orgCount.filter((d,i)=>i<=5)} size={[windowData.width/1.9,175]} padding={35} speed={500} xAdjust ={0} dataMax={data.dataMax} xAxisShow={false} title={"Top Organizations"} yAxisLabelLocation={'right'}></BarChart>
+                  <BarChart data={data.perCount.filter((d,i)=>i<=5)} size={[windowData.width/1.9,175]} padding={35} speed={500} xAdjust ={0} dataMax={data.dataMax} xAxisShow={false} title={"Top People"} yAxisLabelLocation={'right'}></BarChart>
                 </Grid>
             </Grid>
         </Grid>

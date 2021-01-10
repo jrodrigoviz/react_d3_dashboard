@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {scaleLinear, scaleBand,scaleOrdinal} from 'd3-scale';
+import {scaleLinear, scaleTime,scaleOrdinal} from 'd3-scale';
 import {range,max,min,extent,group} from 'd3-array';
 import {curveBasis,curveLinear,curveCardinal,curveMonotoneX, line as d3Line} from 'd3-shape';
 import {keys,values} from 'd3-collection';
@@ -16,6 +16,16 @@ class LineChart extends Component {
 
 
 }
+
+static defaultProps = {
+  orientation: "horizontal",
+  yAxisLabelLocation:'left',
+  showLegend: true,
+  showXAxis: true,
+  showXAxis: true,
+  ticks:3,
+
+};
 
 componentDidMount(){
   const node = this.node;
@@ -37,6 +47,8 @@ componentDidMount(){
 }
 
 componentDidUpdate(){
+  
+  this.reshapeData();
   this.createScales();
   this.updateAxis();
   this.createLineGraph();
@@ -55,7 +67,6 @@ reshapeData(){
 
     var value = Array.from(innerValue,([key,v])=>{
       var value = v[0].value;
-      //var series = v[0].series;
 
       return {key,value}
     });
@@ -78,11 +89,11 @@ createScales(){
     .range([this.props.size[1] - 2* this.props.padding, 0]);
   this.yAxis = axisLeft().scale(this.yScale).tickFormat(format(".0s"));
 
-  this.xScale = scaleLinear()
+  this.xScale = scaleTime()
     .domain(extent(this.props.data.map((d)=>d.key)))
     .range([0, this.props.size[0] - 2* this.props.padding])
 
-  this.xAxis = axisBottom().scale(this.xScale).ticks(5).tickFormat(format("d"));
+  this.xAxis = axisBottom().scale(this.xScale).ticks(this.props.ticks);
 
   this.colorPalette = ["#1f77b4",
       "#ff7f0e",
@@ -103,17 +114,23 @@ createScales(){
 
 createAxis(){
 
-  this.plot
-    .append('g')
-    .attr("id", "x-axisGroup")
-    .attr("class", "x-axis")
-    .attr("transform", "translate(" + "0" + "," + ( this.props.size[1]- 2 * this.props.padding) + ")");
+if(this.props.showXAxis == true){
 
   this.plot
-    .select(".x-axis")
-    .transition()
-    .duration(this.props.speed)
-    .call(this.xAxis)
+      .append('g')
+      .attr("id", "x-axisGroup")
+      .attr("class", "x-axis")
+      .attr("transform", "translate(" + "0" + "," + ( this.props.size[1]- 2 * this.props.padding) + ")");
+
+    this.plot
+      .select(".x-axis")
+      .transition()
+      .duration(this.props.speed)
+      .call(this.xAxis)
+
+    };
+
+if(this.props.showYAxis == true){
 
   this.plot.append("g")
     .attr("id", "y-axisGroup")
@@ -125,9 +142,13 @@ createAxis(){
     .duration(this.props.speed)
     .call(this.yAxis)
 
+    };
+
 }
 
 updateAxis(){
+
+  if(this.props.showXAxis == true){
 
   this.plot
     .select(".x-axis")
@@ -139,14 +160,20 @@ updateAxis(){
     .duration(this.props.speed)
     .call(this.xAxis);
 
-  this.plot
-    .select(".y-axis")
-    .attr("transform", "translate(0,0)");
+    };
 
-  this.plot.select(".y-axis")
-    .transition()
-    .duration(this.props.speed)
-    .call(this.yAxis);
+  if(this.props.showYAxis == true){
+
+    this.plot
+      .select(".y-axis")
+      .attr("transform", "translate(0,0)");
+
+    this.plot.select(".y-axis")
+      .transition()
+      .duration(this.props.speed)
+      .call(this.yAxis);
+
+    }
 
 
 }
@@ -186,6 +213,7 @@ createLineGraph(){
     .each(function(d){eachLine.set(this,d)});
 
  //for each group, get the local variable containing the data and feed it into lineFunction to draw the path
+ //TODO: Option for shifting the path to simulate streaming data instead of redrawing
   lineGroups.append("path")
     .attr("id",function(d){return "series-"+eachLine.get(this).key+"-path"})
     .attr("d",function(d){return lineFunction(eachLine.get(this).value)})
@@ -264,62 +292,64 @@ addYAxisLabel(){
 
 addLegend(){
 
-  this.plot.select(".line-graph-legend").remove();
+  if(this.props.showLegend == true){
 
-  var that = this;
+    this.plot.select(".line-graph-legend").remove();
+
+    var that = this;
 
 
-  var legend = this.plot.append("g")
-    .attr("class","line-graph-legend");
+    var legend = this.plot.append("g")
+      .attr("class","line-graph-legend");
 
-  var legendRectGroups = legend.selectAll("g")
-    .data(this.seriesData)
-    .enter()
-    .append("g");
+    var legendRectGroups = legend.selectAll("g")
+      .data(this.seriesData)
+      .enter()
+      .append("g");
 
-   //Calculate the widths of text pre-render
+    //Calculate the widths of text pre-render
 
-  var maxTextWidth = 0;
-  var totalTextWidth = 0;
+    var maxTextWidth = 0;
+    var totalTextWidth = 0;
 
-  legendRectGroups.append("text")
-    .text((d)=>(d.key))
-    .each(function(d,i){
-      that.seriesData[i]["textWidth"] = this.getComputedTextLength();
-      maxTextWidth = (this.getComputedTextLength()>maxTextWidth ? this.getComputedTextLength(): maxTextWidth  );
-      totalTextWidth = totalTextWidth + this.getComputedTextLength()
-      this.remove();
-     })
+    legendRectGroups.append("text")
+      .text((d)=>(d.key))
+      .each(function(d,i){
+        that.seriesData[i]["textWidth"] = this.getComputedTextLength();
+        maxTextWidth = (this.getComputedTextLength()>maxTextWidth ? this.getComputedTextLength(): maxTextWidth  );
+        totalTextWidth = totalTextWidth + this.getComputedTextLength()
+        this.remove();
+      })
 
-    var yOffset = 10;
+      var yOffset = 10;
 
-     legendRectGroups.append("circle")
-       .attr("class","legend-box")
-       .attr("r",3)
-       .attr("cy",5)
-       .attr("fill",(d)=>(this.colorScale(d.key)));
+      legendRectGroups.append("circle")
+        .attr("class","legend-box")
+        .attr("r",3)
+        .attr("cy",5)
+        .attr("fill",(d)=>(this.colorScale(d.key)));
 
-     legendRectGroups.append("text")
-       .attr("class","legend-box-text")
-       .attr("x",15)
-       .attr("y",10)
-       .text((d)=>d.key)
-       .attr("fill",(d)=>(this.colorScale(d.key)));
+      legendRectGroups.append("text")
+        .attr("class","legend-box-text")
+        .attr("x",15)
+        .attr("y",10)
+        .text((d)=>d.key)
+        .attr("fill",(d)=>(this.colorScale(d.key)));
 
-     legendRectGroups
-      .attr("transform",(d,i)=> {
-        var translation ="";
-        if(this.props.legendOrientation=="vertical"){
-        translation = "translate(0,"+(i*yOffset*1.5)+")";
-        totalTextWidth = maxTextWidth;
-      } else {
-        translation = "translate("+ (i==0 ? 0: this.seriesData.slice(0,i).reduce((t,b)=>t+b.textWidth +25,0) ) +",0)";
-      }
-      return translation
-    })
+      legendRectGroups
+        .attr("transform",(d,i)=> {
+          var translation ="";
+          if(this.props.legendOrientation=="vertical"){
+          translation = "translate(0,"+(i*yOffset*1.5)+")";
+          totalTextWidth = maxTextWidth;
+        } else {
+          translation = "translate("+ (i==0 ? 0: this.seriesData.slice(0,i).reduce((t,b)=>t+b.textWidth +25,0) ) +",0)";
+        }
+        return translation
+      })
 
-  legend.attr("transform","translate("+(this.props.size[0]- (2*this.props.padding) - (totalTextWidth + (3*25)))+","+(-this.props.padding/2 +20)+ ")")
-
+    legend.attr("transform","translate("+(this.props.size[0]- (2*this.props.padding) - (totalTextWidth + (3*25)))+","+(-this.props.padding/2 +20)+ ")")
+  }
 
 };
 

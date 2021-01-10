@@ -39,7 +39,7 @@ const SquareChart = (props) =>{
         }else if(props.size[0] >200) {
             setDims({rows:4,columns:8})   
         }else{
-            setDims({rows:3,columns:10})
+            setDims({rows:3,columns:9})
         }
 
         select("#square-chart")
@@ -73,7 +73,7 @@ const SquareChart = (props) =>{
         // update any exisitng squares
 
         squares
-            .transition()
+            .transition('square-chart-enter')
             .duration(1000)
             .attr('x',(d,i) => xScale((i) % dims.rows))
             .attr('href',(d)=>d.thumbnail)
@@ -84,7 +84,7 @@ const SquareChart = (props) =>{
         // add any new squares
 
         squares
-            .enter()
+            .enter('square-chart-enter')
             .append(props.tag)
             .attr('x',(d,i) => xScale((i) % dims.rows))
             .attr('href',(d)=>d.thumbnail)
@@ -114,37 +114,38 @@ const SquareChart = (props) =>{
 
         const selectX = parseInt(select(nodes[i])
             .attr('x'))
-
         
         const selectY = parseInt(select(nodes[i])
             .attr('y'))
 
+        const selectHeight = parseInt(select(nodes[i])
+            .attr('height'))
+
+        // TODO: the data required for tooltips should be generalized for different data types. Only works for nyt-dash
         const selectTitle = d.title;
+        const selectTags = d.des_facet;
 
         select("#square-chart-holder")
             .append("g")
             .attr('class','square-chart-tooltip')
-            .attr("transform","translate("+(selectX+ (selectX+250 > props.size[0]?-200:75))+","+(selectY+75)+")")
-            .append('rect')
-            .attr('x',0)
-            .attr('y',0)
-            .attr('width',200)
-            .attr('height',50)
-            .style('stroke-width',1)
-            .style('stroke',"#000")
-            .style('fill','#f7f7f7')
+            //.attr("transform","translate("+(selectX+ (selectX+250 > props.size[0]? -(props.size[0]/2):75))+","+(selectY+75)+")")
+            .append("foreignObject")
+            .attr('x', selectX + props.size[0]/1.5 > props.size[0] ? props.size[0] - props.size[0]/1.5 : selectX)
+            .attr('y',selectY +100 > props.size[1] ? selectY - 100 : selectY+selectHeight)
+            .attr('width',props.size[0]/1.5)
+            .attr('height',100)
+            .attr("class",'square-chart-tooltip-fo')
 
-        select(".square-chart-tooltip")
-            .append("text")
-            .text(d.title.substr(0,50))
-            .attr("dx",'1em')
-            .attr("dy",'1.5em')
+        select('.square-chart-tooltip-fo')
+            .append("xhtml:div") // appending an xhtml div to use CSS to format tooltip. Required and cannot be a normal div
+            .attr("class",'square-chart-tooltip-div')
+            .text("Article: " + selectTitle.substr(0,50) + (selectTitle.length > 50 ? "...":""))
         
-        select(".square-chart-tooltip")
-            .append("text")
-            .text(d.des_facet !== null ? [...d.des_facet].join(','):'')
-            .attr("dx",'1em')
-            .attr("dy",'3em')
+        select('.square-chart-tooltip-fo')
+            .append("xhtml:div") // appending an xhtml div to use CSS to format tooltip. Required and cannot be a normal div
+            .attr("class",'square-chart-tooltip-div')
+            .text("Tags: " + selectTags.slice(0,2))
+
         
     }
 
