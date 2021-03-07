@@ -16,8 +16,9 @@ class BarChart extends Component {
   static defaultProps = {
     orientation: "horizontal",
     yAxisLabelLocation:'left',
-    yAxisShow:true,
-    xAxisShow:true,
+    showYAxis:true,
+    showXAxis:true,
+    xAdjust:0
   };
 
 
@@ -27,7 +28,7 @@ class BarChart extends Component {
     this.plot = select(node)
       .append("g")
       .attr("id", "shapes")
-      .attr("transform", "translate(" + (this.props.xAdjust+this.props.padding) + ","+this.props.padding + ")");
+      .attr("transform", "translate(" + (this.props.xAdjust + this.props.padding)+ ","+this.props.padding + ")");
     
     this.plot
       .append("g")
@@ -174,7 +175,7 @@ class BarChart extends Component {
 
   createAxis() {
 
-    if(this.props.xAxisShow == true){
+    if(this.props.showXAxis == true){
 
       this.plot
         .append('g')
@@ -190,27 +191,20 @@ class BarChart extends Component {
 
     }
     
-    if(this.props.yAxisShow == true){
+    if(this.props.showYAxis == true){
 
       this.plot.append("g")
         .attr("id", "y-axisGroup")
         .attr("class", "y-axis")
         .attr("transform", "translate(0,0)");
 
-      this.plot.select(".y-axis")
-        .transition()
-        .duration(this.props.speed)
-        .call(this.yAxis)
-
-      this.plot.select('#y-axisGroup')
-        .attr('text-anchor', this.props.yAxisLabelLocation == 'right' ? 'start':'end');
     }
     
   };
 
 updateAxis() {
 
-    if(this.props.xAxisShow == true){
+    if(this.props.showXAxis == true){
 
     this.plot
       .select(".x-axis")
@@ -225,7 +219,7 @@ updateAxis() {
     }
 
 
-    if(this.props.yAxisShow == true){
+    if(this.props.showYAxis == true){
     
     this.plot
       .select(".y-axis")
@@ -237,6 +231,9 @@ updateAxis() {
       .call(this.yAxis)
       .selectAll('.tick text')
       .attr('dx',(d)=> this.props.yAxisLabelLocation == 'right' ? '13':0 );
+
+    this.plot.select('#y-axisGroup')
+      .attr('text-anchor', (this.props.yAxisLabelLocation == 'right' ? 'start':'end'));
       
     }
 

@@ -14,72 +14,140 @@ class DataTable extends Component {
     this.padding = this.props.padding;
     this.data = this.props.data;
     this.title = this.props.title;
+    this.handleClick = this.props.onClick;
 
 }
 
+static defaultProps = {
+  ticks:3,
+  speed:500,
+  columnAlias:{},
+  parentCallback:()=>{},
+  filters:{}
+
+};
+
 componentDidMount(){
   const node = this.node;
-
   this.plot  = select(node);
-
-  this.plot.append("th").text("key");
-  this.plot.append("th").text("series");
-  this.plot.append("th").text("value");
   this.updateDataTable();
 };
 
 componentDidUpdate(){
-  this.data = this.props.data;
+
+  // if columnOrder is defined then rebuild the dataset accordingly
+  console.log(this.props.data)
+  this.aliasLength = Object.keys(this.props.columnAlias).length
+  this.aliasKeys = Object.keys(this.props.columnAlias)
+
+  this.data = this.props.data
+
   this.updateDataTable();
+  this.updateDataTableFilters();
 
 };
 
 
 updateDataTable(){
 
-  const tableRows = this.plot.selectAll("tr")
-    .data(this.data,(d)=>(d.series));
+  const tableHeaders = this.plot.selectAll(".headerRow")
+     .data([this.data[0]],d=>d.key)
+
+  tableHeaders.exit()
+    .remove();
+
+  tableHeaders
+    .enter()
+    .append("tr")
+    .attr("class","headerRow")
+    .each((d,i,node) => {
+        if(this.aliasLength>0){
+          for(var j=0;j<this.aliasLength; j++){
+            select(node[i]).append("th").attr("class",d=> "col-"+Object.keys(d)[j])
+              .text(this.props.columnAlias[this.aliasKeys[j]]);
+          }
+        }else{
+          for(const key of Object.keys(d)){
+            select(node[i]).append("th").attr("class","col-"+key)
+              .text(key)
+          }
+        }
+      })
+
+  const tableRows = this.plot.selectAll("[class^=tblRow]")
+    .data(this.data,d=>d.key);
 
   tableRows.exit()
     .remove();
 
   tableRows
-      .style("opacity",0)
-      .transition()
+      .style("opacity",1)
+      .transition('data-table-update')
       .duration(this.props.speed)
       .style("opacity",1)
-      .each(function(d){
-        select(this).selectAll(".col1")
-        .text(d.key);
-        select(this).selectAll(".col2")
-        .text(d.series);
-        select(this).selectAll(".col3")
-        .text(d.value);
-      });
+      .each((d,i,node) => {
+        if(this.aliasLength>0){
+          for(var j=0;j<this.aliasLength; j++){
+            select(node[i]).selectAll("col-"+this.aliasKeys[j])
+            .text(d[this.aliasKeys[j]])
+          }
+        }else{
+        for(const key of Object.keys(d)){
+          select(node[i]).selectAll("col-"+key)
+            .text(d[key])
+        }
+      }
+    });
 
 
   tableRows.enter()
     .append("tr")
+    .attr("class","tblRow")
     .style("opacity",0)
-    .transition()
+    .transition('data-table-enter')
     .duration(this.props.speed)
     .style("opacity",1)
-    .each(function(d){
-      select(this).append("td").attr("class","col1")
-        .text(d.key);
-      select(this).append("td").attr("class","col2")
-        .text(d.series);
-      select(this).append("td").attr("class","col3")
-        .text(d.value);
+    .each((d,i,node) => {
+      if(this.aliasLength>0){
+        for(var j=0;j<this.aliasLength; j++){
+          select(node[i]).append("td").attr("class","col-"+this.aliasKeys[j])
+          .on("click",(d,k,node2)=>{
+            this.props.parentCallback(d);
+          })
+          .text(d[this.aliasKeys[j]])
+        }
+      }else{
+      for(const key of Object.keys(d)){
+        select(node[i]).append("td").attr("class","col-"+key)
+          .text(d[key])
+      }
+    }
     });
 
 
 
 };
 
+updateDataTableFilters(){
+  console.log(this.props.filters);
+
+  const tableRows = this.plot.selectAll("[class^=tblRow]")
+
+  tableRows
+    .each((d,i,node)=>{
+      if(d.key == this.props.filters){
+        select(node[i]).attr("class","tblRow-selected")
+      }else{
+        select(node[i]).attr("class","tblRow")
+      }
+    })
+
+}
+
+
 render(){
-  return <table class={this.props.className} ref={node => this.node  = node}  style= {{display:"inline"}}
-          width = {this.props.size[0]} height = {this.props.size[1]}>
+  return <table class={this.props.className} ref={node => this.node  = node} 
+           height = {this.props.size[1]}>
           <caption style= {{textAlign:"left"}}>{this.props.title}</caption>
          </table>;
   }

@@ -24,6 +24,7 @@ static defaultProps = {
   showXAxis: true,
   showXAxis: true,
   ticks:3,
+  lineAnimate:true
 
 };
 
@@ -33,7 +34,7 @@ componentDidMount(){
   this.plot  = select(node)
                 .append("g")
                 .attr("id","line")
-                .attr("transform", "translate(" + this.props.padding + "," + this.props.padding + ")");
+                .attr("transform", "translate(" + (this.props.showYAxis == false ? this.props.padding/2: this.props.padding) + "," + this.props.padding + ")");
 
   this.reshapeData();
   this.createScales();
@@ -198,7 +199,7 @@ createLineGraph(){
   line.exit().remove();
 
   //update any existing elements with new data
-  selectAll("g[id^=series]")
+  this.plot.selectAll("g[id^=series]")
     .selectAll("path")
     .each(function(d){eachLine.set(this,d)})
     .attr("d",function(d){return lineFunction(eachLine.get(this).value)})
@@ -213,7 +214,6 @@ createLineGraph(){
     .each(function(d){eachLine.set(this,d)});
 
  //for each group, get the local variable containing the data and feed it into lineFunction to draw the path
- //TODO: Option for shifting the path to simulate streaming data instead of redrawing
   lineGroups.append("path")
     .attr("id",function(d){return "series-"+eachLine.get(this).key+"-path"})
     .attr("d",function(d){return lineFunction(eachLine.get(this).value)})
@@ -237,7 +237,8 @@ addTitle(){
 drawLines(){
   //after everything has been rendered animate the lines by adding transitions
 
-  selectAll("path[id$=path]").each(function(d) {
+  if(this.props.lineAnimate == true) {
+  this.plot.selectAll("path[id$=path]").each(function(d) {
     var pathLength = select(this).node().getTotalLength();
 
     select(this)
@@ -248,7 +249,12 @@ drawLines(){
       .ease(easeCubic)
       .attr("stroke-dashoffset", 0)
 
+
+
     });
+
+  };
+  
 };
 
 addSubTitle(){
