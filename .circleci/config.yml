@@ -37,7 +37,12 @@ jobs:
       - run:
           name: Deploy onto the server using SCP
           command: |
-            scp -r ~/build root@matchstickdata.com:/app/src
+            scp -r ~/build $SSH_USER@$SSH_HOST:/app/src
+            
+      - run:
+          name: Reload changes on the server and recompose server
+          command: |
+            ssh $SSH_USER@$SSH_HOST "cd /app && docker-compose up"
       
 
 
