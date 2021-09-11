@@ -37,7 +37,7 @@ jobs:
       - run:
           name: Deploy onto the server using SCP
           command: |
-            scp -r /build root@matchstickdata.com:/app/src
+            scp -r ~/build root@matchstickdata.com:/app/src
       
 
 
