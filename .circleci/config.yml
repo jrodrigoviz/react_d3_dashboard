@@ -11,14 +11,35 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "ec:f5:0e:a9:d3:1b:6a:2f:37:fb:cd:e4:17:b7:68:ad"
+
+      - run:
+          name: Add matchstick to known hosts
+          command: ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts  
           
       - checkout
       - setup_remote_docker
+
       - run:
           name: Build application Docker image
           command: |
             docker build -t matchstick_prod .
             
       - run:
-          name: Add matchstick to known hosts
-          command: ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts  
+          name: Create container with the Matchstick image
+          command: |
+            docker create --name matchstick_prod matchstick_prod
+
+      - run:
+          name: Transfer the build file from the container onto the host system
+          command: |
+            docker cp matchstick_prod:/usr/src/app/build ~/
+
+      - run:
+          name: Deploy onto the server using SCP
+          command: |
+            scp -r /build root@matchstickdata.com:/app/src
+      
+
+
+
+
