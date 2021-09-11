@@ -1,0 +1,24 @@
+# This config is equivalent to both the '.circleci/extended/orb-free.yml' and the base '.circleci/config.yml'
+version: 2.0
+
+jobs:
+  build:
+    docker:
+      - image: docker:17.05.0-ce-git
+    resource_class: small
+    steps:
+
+      - add_ssh_keys:
+          fingerprints:
+            - "ec:f5:0e:a9:d3:1b:6a:2f:37:fb:cd:e4:17:b7:68:ad"
+          
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build application Docker image
+          command: |
+            docker build -t matchstick_prod .
+            
+      - run:
+          name: Add matchstick to known hosts
+          command: ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts  
