@@ -42,7 +42,7 @@ jobs:
       - run:
           name: Reload changes on the server and recompose server
           command: |
-            ssh $SSH_USER@$SSH_HOST "cd /app && docker-compose up"
+            ssh $SSH_USER@$SSH_HOST "cd /app && docker-compose up -d"
       
 
 
