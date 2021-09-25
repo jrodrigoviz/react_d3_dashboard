@@ -47,7 +47,6 @@ componentDidUpdate(){
 
 };
 
-
 updateDataTable(){
 
   const tableHeaders = this.plot.selectAll(".headerRow")
@@ -73,8 +72,8 @@ updateDataTable(){
           }
         }
       })
-
-  const tableRows = this.plot.selectAll("[class^=tblRow]")
+      
+  const tableRows = this.plot.selectAll(".tblRow")
     .data(this.data,d=>d.key);
 
   tableRows.exit()
@@ -100,7 +99,8 @@ updateDataTable(){
     });
 
 
-  tableRows.enter()
+  tableRows
+    .enter()
     .append("tr")
     .attr("class","tblRow")
     .style("opacity",0)
@@ -110,7 +110,7 @@ updateDataTable(){
     .each((d,i,node) => {
       if(this.aliasLength>0){
         for(var j=0;j<this.aliasLength; j++){
-          select(node[i]).append("td").attr("class","col-"+this.aliasKeys[j])
+          select(node[i]).append("td").attr("class","col-"+this.aliasKeys[j] )
           .on("click",(d,k,node2)=>{
             this.props.parentCallback(d);
           })
@@ -123,13 +123,14 @@ updateDataTable(){
       }
     }
     });
-
-
+  
+    
+  // Keep the header the first in the table
+  this.plot.selectAll(".headerRow").lower()
 
 };
 
 updateDataTableFilters(){
-  console.log(this.props.filters);
 
   const tableRows = this.plot.selectAll("[class^=tblRow]")
 
@@ -141,6 +142,8 @@ updateDataTableFilters(){
         select(node[i]).attr("class","tblRow")
       }
     })
+
+  this.plot.selectAll(".headerRow").lower()
 
 }
 

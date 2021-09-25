@@ -51,8 +51,8 @@ const useStyles = makeStyles(theme => ({
             textAlign:'right',
             borderCollapse:'collapse',
             padding:10,
-            display:'block',
             overflowY:'auto',
+            display:'block',
             margin:0,
             width:'100%',
             tableLayout:'fixed'
@@ -69,13 +69,16 @@ const useStyles = makeStyles(theme => ({
         "& .headerRow > th":{
             position: 'sticky',
             top:-10,
-            paddingTop:5,
+            paddingTop:10,
             background:'#fff',
             boxShadow: 'inset 0px -1px #000'
             },
         "& .data-table .col-key ":{
             textAlign:'left',
-            paddingLeft:'10px'
+            paddingLeft:'10px',
+            paddingRight:'10px',
+            overflow:'hidden',
+            maxWidth:'100px'
             },
         "& .tblRow-selected > td":{
             backgroundColor:"#ffae34",
@@ -184,19 +187,19 @@ const Dash = (props) =>{
           <Grid item>
             <SquareChart data={squareData.data.filter((d,i)=>i<=15)} size={[windowData.width,(windowData.width > 600 ? windowData.width/4 : windowData.width)]} padding={30} title={'Last '+ squareData.data.filter((d,i)=>i<=15).length +' Articles'}></SquareChart>
           </Grid>
-          <Grid container direction ='row'>
-            <Grid item> 
+          <Grid item> 
               <Typography style={{textAlign:"left"}}  component="p" variant="body">Click on a table row to filter the stories and hover over the squares to see more details of the article</Typography>
             </Grid>
+          <Grid container direction ='row' spacing = {2}>
             <Grid item xs>
-            <DataTable className='data-table' size={[windowData.width,150]} data ={data.desFinal.filter((d,i)=>i<=10)} columnAlias={{key:"Top Topics",value:"Articles",value2:"Rel. Score"}} parentCallback={dataTableFilterCallback} filters={squareData.filterKey}></DataTable>
-          </Grid>
-          <Grid item xs>
-          <DataTable className='data-table' size={[windowData.width,150]} data ={data.perFinal.filter((d,i)=>i<=10)} columnAlias={{key:"Top People",value:"Articles",value2:"Rel. Score"}} parentCallback={dataTableFilterCallback}  filters={squareData.filterKey} ></DataTable>
-          </Grid>
-          <Grid item xs>
-            <DataTable className='data-table' size={[windowData.width,150]} data ={data.orgFinal.filter((d,i)=>i<=10)} columnAlias={{key:"Top Organizations",value:"Articles",value2:"Rel. Score"}} parentCallback={dataTableFilterCallback}  filters={squareData.filterKey}></DataTable>
-          </Grid>
+              <DataTable className='data-table' size={[windowData.width, 150]} data={data.desFinal.filter((d, i) => i <= 10)} columnAlias={{ key: "Top Topics", value: "Articles", value2: "Rel. Score" }} parentCallback={dataTableFilterCallback} filters={squareData.filterKey}></DataTable>
+            </Grid>
+            <Grid item xs>
+              <DataTable className='data-table' size={[windowData.width, 150]} data={data.perFinal.filter((d, i) => i <= 10)} columnAlias={{ key: "Top People", value: "Articles", value2: "Rel. Score" }} parentCallback={dataTableFilterCallback} filters={squareData.filterKey} ></DataTable>
+            </Grid>
+            <Grid item xs>
+              <DataTable className='data-table' size={[windowData.width, 150]} data={data.orgFinal.filter((d, i) => i <= 10)} columnAlias={{ key: "Top Organizations", value: "Articles", value2: "Rel. Score" }} parentCallback={dataTableFilterCallback} filters={squareData.filterKey}></DataTable>
+            </Grid>
           
         </Grid>
         </Grid>
