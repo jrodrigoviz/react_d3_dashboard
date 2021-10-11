@@ -13,6 +13,9 @@ Test.js
 # production
 /build
 
+# local data
+/data
+
 # misc
 .DS_Store
 .env.local

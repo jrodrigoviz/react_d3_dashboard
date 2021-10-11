@@ -36,7 +36,6 @@ componentDidMount(){
 componentDidUpdate(){
 
   // if columnOrder is defined then rebuild the dataset accordingly
-  console.log(this.props.data)
   this.aliasLength = Object.keys(this.props.columnAlias).length
   this.aliasKeys = Object.keys(this.props.columnAlias)
 
@@ -73,7 +72,7 @@ updateDataTable(){
         }
       })
       
-  const tableRows = this.plot.selectAll(".tblRow")
+  const tableRows = this.plot.selectAll("[class^=tblRow]")
     .data(this.data,d=>d.key);
 
   tableRows.exit()

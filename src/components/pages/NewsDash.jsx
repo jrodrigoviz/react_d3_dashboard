@@ -51,7 +51,7 @@ const useStyles = makeStyles(theme => ({
             textAlign:'right',
             borderCollapse:'collapse',
             padding:10,
-            overflowY:'auto',
+            overflowY:'hidden',
             display:'block',
             margin:0,
             width:'100%',
